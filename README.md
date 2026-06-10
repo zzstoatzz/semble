@@ -93,16 +93,20 @@ semble add https://example.com --note "worth a read"
 semble rm <card-id>
 ```
 
-## examples
-
-runnable demos live in `scripts/`:
+output is machine-readable by default — lists are ndjson, single results are one json object, keys match the api's camelCase — so it pipes straight into jq or an agent. add `--pretty` to any command for human-formatted output:
 
 ```bash
-uv run scripts/whoami.py                      # auth sanity check
-uv run scripts/feed.py 10                     # global feed (--following for yours)
-uv run scripts/library.py pdewey.com          # someone's library
-uv run scripts/search.py "durable execution"  # semantic search
-uv run scripts/roundtrip.py                   # write-path exercise (mutates your account!)
+semble feed 25 | jq -r '.card.url'
+semble search "agent memory" | jq -r '.metadata.title'
+semble feed --pretty
+```
+
+## examples
+
+`scripts/roundtrip.py` exercises the write paths end to end (add url → note → collection → cleanup). it mutates your real account, so run it deliberately:
+
+```bash
+uv run scripts/roundtrip.py
 ```
 
 ## development
