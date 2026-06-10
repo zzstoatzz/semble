@@ -1,8 +1,8 @@
 import httpx2 as httpx
 from fastmcp import Client
-from semble_mcp import build_server
 
 from semble import Semble
+from semble.mcp import build_server
 
 
 def mock_semble(payload: dict) -> Semble:

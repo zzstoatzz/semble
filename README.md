@@ -103,11 +103,15 @@ semble feed --pretty
 
 ## mcp server
 
-[`semble-mcp`](semble-mcp/) — a workspace sibling — exposes this sdk to mcp clients via [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode): three meta-tools (`search` / `get_schema` / `execute`) instead of 49, with model-written python composing sdk calls in a sandbox.
+the `mcp` extra ships a `semble-mcp` entry point that exposes this sdk to mcp clients via [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode): three meta-tools (`search` / `get_schema` / `execute`) instead of one tool per endpoint, with model-written python composing sdk calls in a [monty](https://github.com/pydantic/monty) sandbox. intermediate results stay in the sandbox; only the final answer returns to the model's context.
 
 ```bash
+claude mcp add semble -- uvx --from 'semble-api[mcp]' semble-mcp
+# or from a checkout
 claude mcp add semble -- uv run --directory /path/to/this/repo semble-mcp
 ```
+
+auth comes from `SEMBLE_API_KEY` (environment or `.env`); without a key the server is limited to public reads.
 
 ## examples
 
@@ -119,10 +123,8 @@ uv run scripts/roundtrip.py
 
 ## development
 
-this repo is a [uv workspace](https://docs.astral.sh/uv/concepts/projects/workspaces/): `semble-api` at the root, `semble-mcp` as a member.
-
 ```bash
-just test   # pytest (both packages)
+just test   # pytest
 just fmt    # ruff format + check
 just check  # ty
 ```

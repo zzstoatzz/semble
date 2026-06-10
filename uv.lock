@@ -6,12 +6,6 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
-[manifest]
-members = [
-    "semble-api",
-    "semble-mcp",
-]
-
 [[package]]
 name = "aiofile"
 version = "3.9.0"
@@ -1643,52 +1637,42 @@ dependencies = [
 cli = [
     { name = "cyclopts" },
 ]
+mcp = [
+    { name = "fastmcp", extra = ["code-mode"] },
+]
 
 [package.dev-dependencies]
 dev = [
     { name = "cyclopts" },
+    { name = "fastmcp", extra = ["code-mode"] },
     { name = "prek" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-sugar" },
     { name = "ruff" },
-    { name = "semble-mcp" },
     { name = "ty" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cyclopts", marker = "extra == 'cli'", specifier = ">=4.17.0" },
+    { name = "fastmcp", extras = ["code-mode"], marker = "extra == 'mcp'", specifier = ">=3.4.2" },
     { name = "httpx2", specifier = ">=2.3.0" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
 ]
-provides-extras = ["cli"]
+provides-extras = ["cli", "mcp"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "cyclopts", specifier = ">=4.17.0" },
+    { name = "fastmcp", extras = ["code-mode"], specifier = ">=3.4.2" },
     { name = "prek", specifier = ">=0.2.0" },
     { name = "pytest", specifier = ">=8.3.0" },
     { name = "pytest-asyncio", specifier = ">=0.25.0" },
     { name = "pytest-sugar" },
     { name = "ruff", specifier = ">=0.12.0" },
-    { name = "semble-mcp", editable = "semble-mcp" },
     { name = "ty", specifier = ">=0.0.1a25" },
-]
-
-[[package]]
-name = "semble-mcp"
-source = { editable = "semble-mcp" }
-dependencies = [
-    { name = "fastmcp", extra = ["code-mode"] },
-    { name = "semble-api" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastmcp", extras = ["code-mode"], specifier = ">=3.4.2" },
-    { name = "semble-api", editable = "." },
 ]
 
 [[package]]

@@ -4,12 +4,19 @@ instead of one mcp tool per endpoint, the full sdk surface is registered
 host-side and hidden behind fastmcp's CodeMode transform — clients see only
 `search` / `get_schema` / `execute`, and compose sdk calls as python running
 in a monty sandbox.
+
+requires the `mcp` extra: `uv add 'semble-api[mcp]'`.
 """
 
 import inspect
 
-from fastmcp import FastMCP
-from fastmcp.experimental.transforms.code_mode import CodeMode
+try:
+    from fastmcp import FastMCP
+    from fastmcp.experimental.transforms.code_mode import CodeMode
+except ImportError as exc:  # pragma: no cover
+    raise SystemExit(
+        "the semble mcp server requires the `mcp` extra: uv add 'semble-api[mcp]'"
+    ) from exc
 
 from semble import Semble
 from semble.resources._base import SyncResource
