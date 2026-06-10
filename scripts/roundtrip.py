@@ -35,7 +35,7 @@ with Semble() as client:
     print(f"  collection now has: {in_collection}")
 
     print("updating note...")
-    client.cards.update_note(added.url_card_id, "updated by roundtrip")
+    client.cards.update_note(added.note_card_id, "updated by roundtrip")
 
     print("cleaning up...")
     client.collections.delete(collection_id)

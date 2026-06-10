@@ -168,6 +168,8 @@ class Cards(SyncResource):
         )
 
     def update_note(self, card_id: str, note: str) -> None:
+        """update a note card's text. `card_id` must be a note card id
+        (e.g. `AddURLResponse.note_card_id`), not a url card id."""
         self._client.post(
             "network.cosmik.card.updateNote", {"cardId": card_id, "note": note}
         )
@@ -330,6 +332,8 @@ class AsyncCards(AsyncResource):
         )
 
     async def update_note(self, card_id: str, note: str) -> None:
+        """update a note card's text. `card_id` must be a note card id
+        (e.g. `AddURLResponse.note_card_id`), not a url card id."""
         await self._client.post(
             "network.cosmik.card.updateNote", {"cardId": card_id, "note": note}
         )
