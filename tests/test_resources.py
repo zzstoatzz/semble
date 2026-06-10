@@ -1,13 +1,13 @@
 import json
 from typing import Any
 
-import httpx2
+import httpx2 as httpx
 
 from semble.types import CollectionDetail, Page, URLCard
 from tests.conftest import AsyncClientFactory, SyncClientFactory
 
 
-def body_of(request: httpx2.Request) -> dict[str, Any]:
+def body_of(request: httpx.Request) -> dict[str, Any]:
     return json.loads(request.content)
 
 

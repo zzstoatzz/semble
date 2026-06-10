@@ -1,4 +1,4 @@
-import httpx2
+import httpx2 as httpx
 
 
 class SembleError(Exception):
@@ -8,7 +8,7 @@ class SembleError(Exception):
 class APIStatusError(SembleError):
     """a non-2xx response from the semble api."""
 
-    def __init__(self, message: str, *, response: httpx2.Response) -> None:
+    def __init__(self, message: str, *, response: httpx.Response) -> None:
         super().__init__(message)
         self.message = message
         self.response = response
@@ -43,7 +43,7 @@ _STATUS_ERRORS: dict[int, type[APIStatusError]] = {
 }
 
 
-def status_error(response: httpx2.Response) -> APIStatusError:
+def status_error(response: httpx.Response) -> APIStatusError:
     message = ""
     try:
         data = response.json()

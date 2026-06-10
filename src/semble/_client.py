@@ -1,7 +1,7 @@
 from types import TracebackType
 from typing import Any
 
-import httpx2
+import httpx2 as httpx
 from pydantic import SecretStr
 
 from semble._exceptions import status_error
@@ -43,7 +43,7 @@ class _BaseClient:
         return headers
 
     @staticmethod
-    def _parse(response: httpx2.Response, cast_to: Any) -> Any:
+    def _parse(response: httpx.Response, cast_to: Any) -> Any:
         if not response.is_success:
             raise status_error(response)
         if not response.content:
@@ -73,11 +73,11 @@ class Semble(_BaseClient):
         api_key: str | SecretStr | None = None,
         base_url: str | None = None,
         timeout: float | None = None,
-        http_client: httpx2.Client | None = None,
+        http_client: httpx.Client | None = None,
     ) -> None:
         super().__init__(api_key, base_url, timeout)
         self._owns_http = http_client is None
-        self._http = http_client or httpx2.Client(timeout=self.timeout)
+        self._http = http_client or httpx.Client(timeout=self.timeout)
 
         self.actors = Actors(self)
         self.cards = Cards(self)
@@ -147,11 +147,11 @@ class AsyncSemble(_BaseClient):
         api_key: str | SecretStr | None = None,
         base_url: str | None = None,
         timeout: float | None = None,
-        http_client: httpx2.AsyncClient | None = None,
+        http_client: httpx.AsyncClient | None = None,
     ) -> None:
         super().__init__(api_key, base_url, timeout)
         self._owns_http = http_client is None
-        self._http = http_client or httpx2.AsyncClient(timeout=self.timeout)
+        self._http = http_client or httpx.AsyncClient(timeout=self.timeout)
 
         self.actors = AsyncActors(self)
         self.cards = AsyncCards(self)

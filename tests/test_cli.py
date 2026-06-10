@@ -2,7 +2,7 @@ import json
 import sys
 from typing import Any, Protocol
 
-import httpx2
+import httpx2 as httpx
 import pytest
 
 import semble.cli as cli
@@ -23,17 +23,17 @@ class RouteRecorder:
     def __init__(self, responses: Responses, status_code: int = 200) -> None:
         self.responses = responses
         self.status_code = status_code
-        self.requests: list[httpx2.Request] = []
+        self.requests: list[httpx.Request] = []
 
-    def handler(self, request: httpx2.Request) -> httpx2.Response:
+    def handler(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
         for fragment, payload in self.responses.items():
             if fragment in str(request.url):
-                return httpx2.Response(self.status_code, json=payload)
-        return httpx2.Response(404, json={"message": f"no mock for {request.url}"})
+                return httpx.Response(self.status_code, json=payload)
+        return httpx.Response(404, json={"message": f"no mock for {request.url}"})
 
     @property
-    def last(self) -> httpx2.Request:
+    def last(self) -> httpx.Request:
         return self.requests[-1]
 
 
@@ -41,7 +41,7 @@ class RouteRecorder:
 def cli_routes(monkeypatch: pytest.MonkeyPatch) -> CliSetup:
     def setup(responses: Responses, status_code: int = 200) -> RouteRecorder:
         recorder = RouteRecorder(responses, status_code)
-        http = httpx2.Client(transport=httpx2.MockTransport(recorder.handler))
+        http = httpx.Client(transport=httpx.MockTransport(recorder.handler))
         client = Semble(api_key="sk_test", http_client=http)
         monkeypatch.setattr(cli, "Semble", lambda: client)
         return recorder

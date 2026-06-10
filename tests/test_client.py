@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import httpx2
+import httpx2 as httpx
 import pytest
 
 from semble import (
@@ -133,12 +133,12 @@ def test_error_message_from_error_key(sync_client: SyncClientFactory) -> None:
 
 
 def test_error_message_from_plain_text() -> None:
-    def handler(request: httpx2.Request) -> httpx2.Response:
-        return httpx2.Response(500, text="oops")
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="oops")
 
     client = Semble(
         api_key="sk_test",
-        http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
     with pytest.raises(ServerError, match="oops"):
         client.notifications.get_unread_count()
