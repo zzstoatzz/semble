@@ -105,13 +105,27 @@ semble feed --pretty
 
 the `mcp` extra ships a `semble-mcp` entry point that exposes this sdk to mcp clients via [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode): three meta-tools (`search` / `get_schema` / `execute`) instead of one tool per endpoint, with model-written python composing sdk calls in a [monty](https://github.com/pydantic/monty) sandbox. intermediate results stay in the sandbox; only the final answer returns to the model's context.
 
+create an api key at [semble.so/settings/api-keys](https://semble.so/settings/api-keys), then:
+
 ```bash
-claude mcp add semble -- uvx --from 'semble-api[mcp]' semble-mcp
-# or from a checkout
-claude mcp add semble -- uv run --directory /path/to/this/repo semble-mcp
+claude mcp add semble -e SEMBLE_API_KEY=your-key -- uvx --from 'semble-api[mcp]' semble-mcp
 ```
 
-auth comes from `SEMBLE_API_KEY` (environment or `.env`); without a key the server is limited to public reads.
+for other mcp clients (claude desktop, cursor, ...), the equivalent json config:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble-api[mcp]", "semble-mcp"],
+      "env": { "SEMBLE_API_KEY": "your-key" }
+    }
+  }
+}
+```
+
+the key is optional — without it the server is limited to public reads. the server also picks up `SEMBLE_API_KEY` from the environment or a `.env` in the working directory, so inside a checkout of this repo a plain `claude mcp add semble -- uv run --directory /path/to/this/repo semble-mcp` works too.
 
 ## examples
 
