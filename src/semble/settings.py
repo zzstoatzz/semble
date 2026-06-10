@@ -1,4 +1,4 @@
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_BASE_URL = "https://api.semble.so/xrpc"
@@ -19,6 +19,8 @@ class SembleSettings(BaseSettings):
         extra="ignore",
     )
 
-    api_key: SecretStr | None = None
-    base_url: str = DEFAULT_BASE_URL
-    timeout: float = 30.0
+    api_key: SecretStr | None = Field(
+        default=None, description="API key for authentication"
+    )
+    base_url: str = Field(default=DEFAULT_BASE_URL, description="Base URL for the API")
+    timeout: float = Field(default=30.0, description="Timeout for API requests")
