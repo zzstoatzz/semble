@@ -1,8 +1,8 @@
-import os
 from types import TracebackType
 from typing import Any
 
 import httpx2
+from pydantic import SecretStr
 
 from semble._exceptions import status_error
 from semble.resources.actors import Actors, AsyncActors
@@ -13,26 +13,33 @@ from semble.resources.feeds import AsyncFeeds, Feeds
 from semble.resources.graph import AsyncGraph, Graph
 from semble.resources.notifications import AsyncNotifications, Notifications
 from semble.resources.search import AsyncSearch, Search
-
-DEFAULT_BASE_URL = "https://api.semble.so/xrpc"
-DEFAULT_TIMEOUT = 30.0
+from semble.settings import SembleSettings
 
 
 class _BaseClient:
-    def __init__(self, api_key: str | None, base_url: str | None) -> None:
-        self.api_key = (
-            api_key if api_key is not None else os.environ.get("SEMBLE_API_KEY")
-        )
-        raw = base_url or os.environ.get("SEMBLE_BASE_URL") or DEFAULT_BASE_URL
-        self.base_url = raw.rstrip("/")
+    def __init__(
+        self,
+        api_key: str | SecretStr | None,
+        base_url: str | None,
+        timeout: float | None,
+    ) -> None:
+        settings = SembleSettings()
+        if api_key is None:
+            self.api_key = settings.api_key
+        elif isinstance(api_key, str):
+            self.api_key = SecretStr(api_key) if api_key else None
+        else:
+            self.api_key = api_key
+        self.base_url = (base_url or settings.base_url).rstrip("/")
+        self.timeout = timeout if timeout is not None else settings.timeout
 
     def _url(self, nsid: str) -> str:
         return f"{self.base_url}/{nsid}"
 
     def _headers(self) -> dict[str, str]:
         headers = {"accept": "application/json"}
-        if self.api_key:
-            headers["x-api-key"] = self.api_key
+        if self.api_key is not None:
+            headers["x-api-key"] = self.api_key.get_secret_value()
         return headers
 
     @staticmethod
@@ -50,21 +57,27 @@ class _BaseClient:
 class Semble(_BaseClient):
     """synchronous client for the semble api.
 
-    reads `SEMBLE_API_KEY` and `SEMBLE_BASE_URL` from the environment when
-    not passed explicitly. create keys at https://semble.so/settings/api-keys.
+    configuration not passed explicitly comes from `SembleSettings`
+    (`SEMBLE_*` environment variables, then a local `.env` file). create
+    keys at https://semble.so/settings/api-keys.
+
+    usable directly or as a context manager. `close()` only closes the
+    underlying http client if this client created it — a borrowed
+    `http_client` stays open and its lifecycle (including its timeout)
+    remains the caller's.
     """
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | SecretStr | None = None,
         base_url: str | None = None,
-        timeout: float = DEFAULT_TIMEOUT,
+        timeout: float | None = None,
         http_client: httpx2.Client | None = None,
     ) -> None:
-        super().__init__(api_key, base_url)
+        super().__init__(api_key, base_url, timeout)
         self._owns_http = http_client is None
-        self._http = http_client or httpx2.Client(timeout=timeout)
+        self._http = http_client or httpx2.Client(timeout=self.timeout)
 
         self.actors = Actors(self)
         self.cards = Cards(self)
@@ -118,21 +131,27 @@ class Semble(_BaseClient):
 class AsyncSemble(_BaseClient):
     """asynchronous client for the semble api.
 
-    reads `SEMBLE_API_KEY` and `SEMBLE_BASE_URL` from the environment when
-    not passed explicitly. create keys at https://semble.so/settings/api-keys.
+    configuration not passed explicitly comes from `SembleSettings`
+    (`SEMBLE_*` environment variables, then a local `.env` file). create
+    keys at https://semble.so/settings/api-keys.
+
+    usable directly or as a context manager. `close()` only closes the
+    underlying http client if this client created it — a borrowed
+    `http_client` stays open and its lifecycle (including its timeout)
+    remains the caller's.
     """
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | SecretStr | None = None,
         base_url: str | None = None,
-        timeout: float = DEFAULT_TIMEOUT,
+        timeout: float | None = None,
         http_client: httpx2.AsyncClient | None = None,
     ) -> None:
-        super().__init__(api_key, base_url)
+        super().__init__(api_key, base_url, timeout)
         self._owns_http = http_client is None
-        self._http = http_client or httpx2.AsyncClient(timeout=timeout)
+        self._http = http_client or httpx2.AsyncClient(timeout=self.timeout)
 
         self.actors = AsyncActors(self)
         self.cards = AsyncCards(self)

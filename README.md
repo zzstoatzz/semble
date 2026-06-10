@@ -17,7 +17,7 @@ create an api key at [semble.so/settings/api-keys](https://semble.so/settings/ap
 ```python
 from semble import Semble
 
-client = Semble()  # reads SEMBLE_API_KEY (and optional SEMBLE_BASE_URL)
+client = Semble()  # reads SEMBLE_API_KEY from the environment or a local .env
 
 # add a url to your library
 result = client.cards.add_url("https://example.com", note="worth a read")
@@ -63,6 +63,30 @@ client.get("network.cosmik.card.getLibraryStatus", {"url": "https://example.com"
 ```
 
 `semble.records` has pydantic models for the raw `network.cosmik.*` pds records, if you're reading or writing them directly (e.g. with [pdsx](https://github.com/zzstoatzz/pdsx)).
+
+## configuration
+
+settings come from explicit kwargs, then `SEMBLE_*` environment variables, then a local `.env` file (via [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)):
+
+| setting           | kwarg      | default                       |
+| ----------------- | ---------- | ----------------------------- |
+| `SEMBLE_API_KEY`  | `api_key`  | unauthenticated (public reads work) |
+| `SEMBLE_BASE_URL` | `base_url` | `https://api.semble.so/xrpc`  |
+| `SEMBLE_TIMEOUT`  | `timeout`  | `30.0`                        |
+
+the api key is held as a pydantic `SecretStr`, so it won't leak into logs or reprs.
+
+## examples
+
+runnable demos live in `scripts/`:
+
+```bash
+uv run scripts/whoami.py                      # auth sanity check
+uv run scripts/feed.py 10                     # global feed (--following for yours)
+uv run scripts/library.py pdewey.com          # someone's library
+uv run scripts/search.py "durable execution"  # semantic search
+uv run scripts/roundtrip.py                   # write-path exercise (mutates your account!)
+```
 
 ## development
 

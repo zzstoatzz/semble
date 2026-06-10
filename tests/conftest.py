@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any
 
 import httpx2
@@ -23,9 +24,15 @@ class Recorder:
         return self.requests[-1]
 
 
+SyncClientFactory = Callable[..., tuple[Semble, Recorder]]
+AsyncClientFactory = Callable[..., tuple[AsyncSemble, Recorder]]
+
+
 @pytest.fixture
-def sync_client():
-    def make(response_json: Any = None, status_code: int = 200, **kwargs: Any):
+def sync_client() -> SyncClientFactory:
+    def make(
+        response_json: Any = None, status_code: int = 200, **kwargs: Any
+    ) -> tuple[Semble, Recorder]:
         recorder = Recorder(response_json, status_code)
         http = httpx2.Client(transport=httpx2.MockTransport(recorder.handler))
         kwargs.setdefault("api_key", "sk_test")
@@ -35,8 +42,10 @@ def sync_client():
 
 
 @pytest.fixture
-def async_client():
-    def make(response_json: Any = None, status_code: int = 200, **kwargs: Any):
+def async_client() -> AsyncClientFactory:
+    def make(
+        response_json: Any = None, status_code: int = 200, **kwargs: Any
+    ) -> tuple[AsyncSemble, Recorder]:
         recorder = Recorder(response_json, status_code)
         http = httpx2.AsyncClient(transport=httpx2.MockTransport(recorder.handler))
         kwargs.setdefault("api_key", "sk_test")

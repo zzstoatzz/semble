@@ -1,6 +1,7 @@
 from importlib.metadata import PackageNotFoundError, version
 
-from semble._client import DEFAULT_BASE_URL, AsyncSemble, Semble
+from semble._client import AsyncSemble, Semble
+from semble.settings import DEFAULT_BASE_URL, SembleSettings
 from semble._exceptions import (
     APIStatusError,
     AuthenticationError,
@@ -26,6 +27,7 @@ __all__ = [
     "RateLimitError",
     "Semble",
     "SembleError",
+    "SembleSettings",
     "ServerError",
     "__version__",
 ]

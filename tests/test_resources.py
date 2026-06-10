@@ -1,13 +1,17 @@
 import json
+from typing import Any
+
+import httpx2
 
 from semble.types import CollectionDetail, Page, URLCard
+from tests.conftest import AsyncClientFactory, SyncClientFactory
 
 
-def body_of(request) -> dict:
+def body_of(request: httpx2.Request) -> dict[str, Any]:
     return json.loads(request.content)
 
 
-def test_add_url_posts_body(sync_client):
+def test_add_url_posts_body(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({"urlCardId": "card_1", "noteCardId": "note_1"})
     result = client.cards.add_url(
         "https://x.io", note="neat", collection_ids=["col_1"], via_card_id=None
@@ -23,7 +27,7 @@ def test_add_url_posts_body(sync_client):
     assert result.note_card_id == "note_1"
 
 
-def test_list_mine_params(sync_client):
+def test_list_mine_params(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({"cards": [], "pagination": {"hasMore": False}})
     page = client.cards.list_mine(
         page=2, limit=10, sort_by="createdAt", sort_order="desc"
@@ -37,7 +41,7 @@ def test_list_mine_params(sync_client):
     assert isinstance(page, Page)
 
 
-def test_list_mine_parses_cards(sync_client):
+def test_list_mine_parses_cards(sync_client: SyncClientFactory) -> None:
     client, _ = sync_client(
         {
             "cards": [
@@ -60,7 +64,7 @@ def test_list_mine_parses_cards(sync_client):
     assert card.created_at.year == 2026
 
 
-def test_collection_get_detail(sync_client):
+def test_collection_get_detail(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client(
         {
             "id": "col_1",
@@ -79,7 +83,7 @@ def test_collection_get_detail(sync_client):
     assert detail.pagination.has_more is True
 
 
-def test_connection_types_repeat_param(sync_client):
+def test_connection_types_repeat_param(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({"connections": []})
     client.connections.get_for_url(
         "https://x.io", connection_types=["SUPPORTS", "OPPOSES"], direction="outgoing"
@@ -89,13 +93,13 @@ def test_connection_types_repeat_param(sync_client):
     assert params["direction"] == "outgoing"
 
 
-def test_update_note_returns_none(sync_client):
+def test_update_note_returns_none(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({})
     assert client.cards.update_note("card_1", "new note") is None
     assert body_of(recorder.last) == {"cardId": "card_1", "note": "new note"}
 
 
-def test_follow(sync_client):
+def test_follow(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({"followId": "f1", "success": True})
     result = client.graph.follow("did:plc:abc", "USER")
     assert body_of(recorder.last) == {"targetId": "did:plc:abc", "targetType": "USER"}
@@ -103,14 +107,14 @@ def test_follow(sync_client):
     assert result.success is True
 
 
-def test_mark_all_read_posts_empty_body(sync_client):
+def test_mark_all_read_posts_empty_body(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client({"markedCount": 4})
     result = client.notifications.mark_all_read()
     assert body_of(recorder.last) == {}
     assert result.marked_count == 4
 
 
-def test_semantic_search(sync_client):
+def test_semantic_search(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client(
         {"urls": [{"url": "https://x.io", "metadata": {"title": "x"}}]}
     )
@@ -119,10 +123,12 @@ def test_semantic_search(sync_client):
     assert params["query"] == "durable execution"
     assert params["threshold"] == "0.7"
     assert params["limit"] == "5"
-    assert page.items[0].metadata.title == "x"
+    hit = page.items[0]
+    assert hit.metadata is not None
+    assert hit.metadata.title == "x"
 
 
-def test_get_url_metadata(sync_client):
+def test_get_url_metadata(sync_client: SyncClientFactory) -> None:
     client, recorder = sync_client(
         {
             "metadata": {"url": "https://x.io", "title": "x"},
@@ -136,14 +142,14 @@ def test_get_url_metadata(sync_client):
     assert result.stats.library_count == 2
 
 
-async def test_async_add_url(async_client):
+async def test_async_add_url(async_client: AsyncClientFactory) -> None:
     client, recorder = async_client({"urlCardId": "card_1"})
     result = await client.cards.add_url("https://x.io")
     assert body_of(recorder.last) == {"url": "https://x.io"}
     assert result.url_card_id == "card_1"
 
 
-async def test_async_list_by_user(async_client):
+async def test_async_list_by_user(async_client: AsyncClientFactory) -> None:
     client, recorder = async_client({"cards": [{"id": "c1"}]})
     page = await client.cards.list_by_user(
         "pdewey.com", url_type="article", uncollected=False
@@ -155,7 +161,7 @@ async def test_async_list_by_user(async_client):
     assert page.items[0].id == "c1"
 
 
-async def test_async_get_profile(async_client):
+async def test_async_get_profile(async_client: AsyncClientFactory) -> None:
     client, recorder = async_client({"handle": "zzstoatzz.io", "followerCount": 1})
     user = await client.actors.get_profile("zzstoatzz.io", include_stats=True)
     assert recorder.last.url.params["identifier"] == "zzstoatzz.io"

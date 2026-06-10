@@ -23,7 +23,11 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-dependencies = ["httpx2>=2.3.0", "pydantic>=2.7"]
+dependencies = [
+    "httpx2>=2.3.0",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.14.1",
+]
 
 [dependency-groups]
 dev = [
@@ -65,8 +69,10 @@ ignore = [
     "COM812",
     "PLR0913", # Too many arguments
     "SIM102",  # Dont require combining if statements
+    "ANN401",  # Any is allowed where it's the honest type (escape hatches)
 ]
 extend-select = [
+    "ANN", # flake8-annotations: require complete signatures
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "I",   # isort
