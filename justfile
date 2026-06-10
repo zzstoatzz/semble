@@ -1,11 +1,11 @@
 # run tests
 test:
-    uv run pytest tests/ -x
+    uv run pytest -x
 
 # format and lint
 fmt:
-    uv run ruff format src/ tests/
-    uv run ruff check src/ tests/ --fix
+    uv run ruff format src/ tests/ semble-mcp/
+    uv run ruff check src/ tests/ semble-mcp/ --fix
 
 # type check
 check:

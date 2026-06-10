@@ -101,6 +101,14 @@ semble search "agent memory" | jq -r '.metadata.title'
 semble feed --pretty
 ```
 
+## mcp server
+
+[`semble-mcp`](semble-mcp/) — a workspace sibling — exposes this sdk to mcp clients via [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode): three meta-tools (`search` / `get_schema` / `execute`) instead of 49, with model-written python composing sdk calls in a sandbox.
+
+```bash
+claude mcp add semble -- uv run --directory /path/to/this/repo semble-mcp
+```
+
 ## examples
 
 `scripts/roundtrip.py` exercises the write paths end to end (add url → note → collection → cleanup). it mutates your real account, so run it deliberately:
@@ -111,8 +119,10 @@ uv run scripts/roundtrip.py
 
 ## development
 
+this repo is a [uv workspace](https://docs.astral.sh/uv/concepts/projects/workspaces/): `semble-api` at the root, `semble-mcp` as a member.
+
 ```bash
-just test   # pytest
+just test   # pytest (both packages)
 just fmt    # ruff format + check
 just check  # ty
 ```

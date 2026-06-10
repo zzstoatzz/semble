@@ -46,7 +46,14 @@ dev = [
     "prek>=0.2.0",
     "ty>=0.0.1a25",
     "cyclopts>=4.17.0",
+    "semble-mcp",
 ]
+
+[tool.uv.workspace]
+members = ["semble-mcp"]
+
+[tool.uv.sources]
+semble-mcp = { workspace = true }
 
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
@@ -67,7 +74,7 @@ fallback-version = "0.0.0"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-testpaths = ["tests"]
+testpaths = ["tests", "semble-mcp/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -96,7 +103,7 @@ extend-select = [
 "tests/**/*.py" = ["S101"]       # Allow assert in tests
 
 [tool.ty.src]
-include = ["src", "tests"]
+include = ["src", "tests", "semble-mcp"]
 exclude = [
     "**/node_modules",
     "**/__pycache__",
