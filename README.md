@@ -76,6 +76,23 @@ settings come from explicit kwargs, then `SEMBLE_*` environment variables, then 
 
 the api key is held as a pydantic `SecretStr`, so it won't leak into logs or reprs.
 
+## cli
+
+a small [cyclopts](https://github.com/BrianPugh/cyclopts) cli ships as an extra:
+
+```bash
+uv add 'semble-api[cli]'
+# or run without installing
+uvx --from 'semble-api[cli]' semble --help
+
+semble whoami                          # auth sanity check
+semble feed 10 --following             # activity feeds
+semble search "durable execution"      # semantic search
+semble library pdewey.com              # anyone's library (or yours, with no handle)
+semble add https://example.com --note "worth a read"
+semble rm <card-id>
+```
+
 ## examples
 
 runnable demos live in `scripts/`:
