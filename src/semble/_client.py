@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, TypeVar, overload
+from typing import Any, overload
 
 import httpx2 as httpx
 from pydantic import BaseModel, SecretStr
@@ -15,14 +15,12 @@ from semble.resources.notifications import AsyncNotifications, Notifications
 from semble.resources.search import AsyncSearch, Search
 from semble.settings import SembleSettings
 
-T = TypeVar("T", bound=BaseModel)
-
 
 @overload
-def _parse(response: httpx.Response, cast_to: type[T]) -> T: ...
+def _parse[T: BaseModel](response: httpx.Response, cast_to: type[T]) -> T: ...
 @overload
 def _parse(response: httpx.Response, cast_to: None) -> Any: ...
-def _parse(response: httpx.Response, cast_to: type[T] | None) -> Any:
+def _parse[T: BaseModel](response: httpx.Response, cast_to: type[T] | None) -> Any:
     if not response.is_success:
         raise status_error(response)
     if not response.content:
@@ -99,14 +97,14 @@ class Semble(_BaseClient):
         self.search = Search(self)
 
     @overload
-    def get(
+    def get[T: BaseModel](
         self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: type[T]
     ) -> T: ...
     @overload
     def get(
         self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: None = None
     ) -> Any: ...
-    def get(
+    def get[T: BaseModel](
         self,
         nsid: str,
         params: dict[str, Any] | None = None,
@@ -120,14 +118,14 @@ class Semble(_BaseClient):
         return _parse(response, cast_to)
 
     @overload
-    def post(
+    def post[T: BaseModel](
         self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: type[T]
     ) -> T: ...
     @overload
     def post(
         self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: None = None
     ) -> Any: ...
-    def post(
+    def post[T: BaseModel](
         self,
         nsid: str,
         json: dict[str, Any] | None = None,
@@ -189,14 +187,14 @@ class AsyncSemble(_BaseClient):
         self.search = AsyncSearch(self)
 
     @overload
-    async def get(
+    async def get[T: BaseModel](
         self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: type[T]
     ) -> T: ...
     @overload
     async def get(
         self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: None = None
     ) -> Any: ...
-    async def get(
+    async def get[T: BaseModel](
         self,
         nsid: str,
         params: dict[str, Any] | None = None,
@@ -210,14 +208,14 @@ class AsyncSemble(_BaseClient):
         return _parse(response, cast_to)
 
     @overload
-    async def post(
+    async def post[T: BaseModel](
         self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: type[T]
     ) -> T: ...
     @overload
     async def post(
         self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: None = None
     ) -> Any: ...
-    async def post(
+    async def post[T: BaseModel](
         self,
         nsid: str,
         json: dict[str, Any] | None = None,

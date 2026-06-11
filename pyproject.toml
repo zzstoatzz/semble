@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "python client for the semble api"
 readme = "README.md"
 authors = [{ name = "zzstoatzz", email = "thrast36@gmail.com" }]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 
 keywords = ["semble", "atproto", "bookmarks", "curation", "knowledge-graph"]
@@ -14,8 +14,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -111,4 +109,4 @@ exclude = [
 ]
 
 [tool.ty.environment]
-python-version = "3.10"
+python-version = "3.12"

@@ -7,7 +7,7 @@ never break parsing.
 """
 
 from datetime import datetime
-from typing import Any, Generic, Literal, TypeVar
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
@@ -220,8 +220,6 @@ class CountResponse(Model):
     unread_count: int | None = None
 
 
-ItemT = TypeVar("ItemT")
-
 # the api names its result array differently per endpoint (cards, users,
 # activities, ...). collect whichever is present into `items` so every
 # paginated response has one stable shape.
@@ -240,7 +238,7 @@ _ITEM_KEYS = (
 )
 
 
-class Page(Model, Generic[ItemT]):
+class Page[ItemT](Model):
     items: list[ItemT] = Field(default_factory=list)
     pagination: Pagination | None = None
     sorting: Any = None
