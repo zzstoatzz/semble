@@ -145,6 +145,7 @@ just check  # ty
 
 ## see also
 
+- [semble for agents](docs/agent-surfaces.md) — choosing between the sdk, cli, and mcp surfaces when wiring up agents
 - [semble api docs](https://docs.cosmik.network/semble-api)
 - [@semble.so/api](https://npmx.dev/package/@semble.so/api) — official typescript client
 - [tangled.org/pdewey.com/semble](https://tangled.org/pdewey.com/semble) — go client
