@@ -9,9 +9,32 @@ from semble import (
     NotFoundError,
     RateLimitError,
     Semble,
+    SembleError,
     ServerError,
 )
+from semble.types import CountResponse
 from tests.conftest import AsyncClientFactory, SyncClientFactory
+
+
+def empty_response_client() -> Semble:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200)
+
+    return Semble(
+        api_key="sk_test",
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+
+def test_empty_body_without_cast_to_returns_none() -> None:
+    assert empty_response_client().post("network.cosmik.card.updateNote", {}) is None
+
+
+def test_empty_body_with_cast_to_raises() -> None:
+    with pytest.raises(SembleError, match="expected a json body"):
+        empty_response_client().get(
+            "network.cosmik.notification.getUnreadCount", cast_to=CountResponse
+        )
 
 
 def test_api_key_header(sync_client: SyncClientFactory) -> None:

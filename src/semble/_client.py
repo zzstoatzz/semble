@@ -1,10 +1,10 @@
 from types import TracebackType
-from typing import Any
+from typing import Any, TypeVar, overload
 
 import httpx2 as httpx
-from pydantic import SecretStr
+from pydantic import BaseModel, SecretStr
 
-from semble._exceptions import status_error
+from semble._exceptions import SembleError, status_error
 from semble.resources.actors import Actors, AsyncActors
 from semble.resources.cards import AsyncCards, Cards
 from semble.resources.collections import AsyncCollections, Collections
@@ -14,6 +14,27 @@ from semble.resources.graph import AsyncGraph, Graph
 from semble.resources.notifications import AsyncNotifications, Notifications
 from semble.resources.search import AsyncSearch, Search
 from semble.settings import SembleSettings
+
+T = TypeVar("T", bound=BaseModel)
+
+
+@overload
+def _parse(response: httpx.Response, cast_to: type[T]) -> T: ...
+@overload
+def _parse(response: httpx.Response, cast_to: None) -> Any: ...
+def _parse(response: httpx.Response, cast_to: type[T] | None) -> Any:
+    if not response.is_success:
+        raise status_error(response)
+    if not response.content:
+        if cast_to is not None:
+            raise SembleError(
+                f"expected a json body from {response.request.url}, got an empty response"
+            )
+        return None
+    data = response.json()
+    if cast_to is None:
+        return data
+    return cast_to.model_validate(data)
 
 
 class _BaseClient:
@@ -41,17 +62,6 @@ class _BaseClient:
         if self.api_key is not None:
             headers["x-api-key"] = self.api_key.get_secret_value()
         return headers
-
-    @staticmethod
-    def _parse(response: httpx.Response, cast_to: Any) -> Any:
-        if not response.is_success:
-            raise status_error(response)
-        if not response.content:
-            return None
-        data = response.json()
-        if cast_to is None:
-            return data
-        return cast_to.model_validate(data)
 
 
 class Semble(_BaseClient):
@@ -88,29 +98,45 @@ class Semble(_BaseClient):
         self.notifications = Notifications(self)
         self.search = Search(self)
 
+    @overload
+    def get(
+        self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: type[T]
+    ) -> T: ...
+    @overload
+    def get(
+        self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: None = None
+    ) -> Any: ...
     def get(
         self,
         nsid: str,
         params: dict[str, Any] | None = None,
         *,
-        cast_to: Any = None,
+        cast_to: type[T] | None = None,
     ) -> Any:
         """GET an xrpc query by nsid. escape hatch for unwrapped endpoints."""
         response = self._http.get(
             self._url(nsid), params=params, headers=self._headers()
         )
-        return self._parse(response, cast_to)
+        return _parse(response, cast_to)
 
+    @overload
+    def post(
+        self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: type[T]
+    ) -> T: ...
+    @overload
+    def post(
+        self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: None = None
+    ) -> Any: ...
     def post(
         self,
         nsid: str,
         json: dict[str, Any] | None = None,
         *,
-        cast_to: Any = None,
+        cast_to: type[T] | None = None,
     ) -> Any:
         """POST an xrpc procedure by nsid. escape hatch for unwrapped endpoints."""
         response = self._http.post(self._url(nsid), json=json, headers=self._headers())
-        return self._parse(response, cast_to)
+        return _parse(response, cast_to)
 
     def close(self) -> None:
         if self._owns_http:
@@ -162,31 +188,47 @@ class AsyncSemble(_BaseClient):
         self.notifications = AsyncNotifications(self)
         self.search = AsyncSearch(self)
 
+    @overload
+    async def get(
+        self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: type[T]
+    ) -> T: ...
+    @overload
+    async def get(
+        self, nsid: str, params: dict[str, Any] | None = None, *, cast_to: None = None
+    ) -> Any: ...
     async def get(
         self,
         nsid: str,
         params: dict[str, Any] | None = None,
         *,
-        cast_to: Any = None,
+        cast_to: type[T] | None = None,
     ) -> Any:
         """GET an xrpc query by nsid. escape hatch for unwrapped endpoints."""
         response = await self._http.get(
             self._url(nsid), params=params, headers=self._headers()
         )
-        return self._parse(response, cast_to)
+        return _parse(response, cast_to)
 
+    @overload
+    async def post(
+        self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: type[T]
+    ) -> T: ...
+    @overload
+    async def post(
+        self, nsid: str, json: dict[str, Any] | None = None, *, cast_to: None = None
+    ) -> Any: ...
     async def post(
         self,
         nsid: str,
         json: dict[str, Any] | None = None,
         *,
-        cast_to: Any = None,
+        cast_to: type[T] | None = None,
     ) -> Any:
         """POST an xrpc procedure by nsid. escape hatch for unwrapped endpoints."""
         response = await self._http.post(
             self._url(nsid), json=json, headers=self._headers()
         )
-        return self._parse(response, cast_to)
+        return _parse(response, cast_to)
 
     async def close(self) -> None:
         if self._owns_http:
