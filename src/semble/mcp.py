@@ -15,6 +15,7 @@ requires the `mcp` extra: `uv add 'semble-api[mcp]'`.
 """
 
 import inspect
+from collections.abc import Callable
 from functools import wraps
 
 try:
@@ -33,7 +34,9 @@ from semble.resources._base import SyncResource
 API_KEY_HEADER = "x-semble-api-key"
 
 
-def _per_request(default_method, resource_name: str, method_name: str):
+def _per_request[**P, R](
+    default_method: Callable[P, R], resource_name: str, method_name: str
+) -> Callable[P, R]:
     """wrap a bound sdk method so each call resolves its client.
 
     `get_http_headers()` returns `{}` off-http (stdio, in-memory tests), so
@@ -41,12 +44,14 @@ def _per_request(default_method, resource_name: str, method_name: str):
     """
 
     @wraps(default_method)
-    def tool(*args, **kwargs):
+    def tool(*args: P.args, **kwargs: P.kwargs) -> R:
         key = get_http_headers().get(API_KEY_HEADER)
         if not key:
             return default_method(*args, **kwargs)
         with Semble(api_key=key) as client:
-            method = getattr(getattr(client, resource_name), method_name)
+            method: Callable[P, R] = getattr(
+                getattr(client, resource_name), method_name
+            )
             return method(*args, **kwargs)
 
     return tool

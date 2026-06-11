@@ -1,4 +1,7 @@
+from typing import Any
+
 import httpx2 as httpx
+import pytest
 from fastmcp import Client
 
 from semble import Semble
@@ -45,7 +48,9 @@ async def test_execute_composes_sdk_calls() -> None:
         assert result.content[0].text == "14"
 
 
-async def test_api_key_header_routes_to_fresh_client(monkeypatch) -> None:
+async def test_api_key_header_routes_to_fresh_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """an x-semble-api-key header gets its own client; the default sees nothing."""
     from tests.conftest import Recorder
 
@@ -59,7 +64,7 @@ async def test_api_key_header_routes_to_fresh_client(monkeypatch) -> None:
 
     per_request_recorder = Recorder({"count": 7})
 
-    def fake_semble(api_key: str | None = None, **kwargs):
+    def fake_semble(api_key: str | None = None, **kwargs: Any) -> Semble:
         return Semble(
             api_key=api_key,
             http_client=httpx.Client(
