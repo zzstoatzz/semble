@@ -52,7 +52,7 @@ prefer it when:
 - workflows are composition-heavy and context economy matters, even if a shell exists
 - you want the tool surface to track the sdk automatically — the server reflects over the client, so new sdk methods appear without anyone maintaining tool definitions
 
-know the caveats: mcp client quality varies a lot in practice (see [mcpval](https://dev-log.prefect.io/mcpval/) — judge a server by what your client can actually accomplish with it, not by what it exposes), and the server is stdio + env-var auth today, launched per-user by the client rather than hosted.
+know the caveats: mcp client quality varies a lot in practice (see [mcpval](https://dev-log.prefect.io/mcpval/) — judge a server by what your client can actually accomplish with it, not by what it exposes). auth works both ways: stdio launches read `SEMBLE_API_KEY` from the environment, while a hosted (http) deployment resolves auth per request from an `x-semble-api-key` header — the server holds no identity, so one shared url serves many users, each bringing their own key (no header = public reads).
 
 ## choosing
 

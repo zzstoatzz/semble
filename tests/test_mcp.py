@@ -43,3 +43,63 @@ async def test_execute_composes_sdk_calls() -> None:
         )
         result = await session.call_tool("execute", {"code": code})
         assert result.content[0].text == "14"
+
+
+async def test_api_key_header_routes_to_fresh_client(monkeypatch) -> None:
+    """an x-semble-api-key header gets its own client; the default sees nothing."""
+    from tests.conftest import Recorder
+
+    default_recorder = Recorder({"count": 1})
+    default_client = Semble(
+        api_key="sk_process",
+        http_client=httpx.Client(
+            transport=httpx.MockTransport(default_recorder.handler)
+        ),
+    )
+
+    per_request_recorder = Recorder({"count": 7})
+
+    def fake_semble(api_key: str | None = None, **kwargs):
+        return Semble(
+            api_key=api_key,
+            http_client=httpx.Client(
+                transport=httpx.MockTransport(per_request_recorder.handler)
+            ),
+        )
+
+    monkeypatch.setattr("semble.mcp.Semble", fake_semble)
+    monkeypatch.setattr(
+        "semble.mcp.get_http_headers", lambda: {"x-semble-api-key": "sk_user"}
+    )
+
+    async with Client(build_server(default_client)) as session:
+        code = (
+            'unread = await call_tool("notifications_get_unread_count", {})\n'
+            'return unread["count"]\n'
+        )
+        result = await session.call_tool("execute", {"code": code})
+
+    assert result.content[0].text == "7"
+    assert default_recorder.requests == []
+    assert per_request_recorder.last.headers["x-api-key"] == "sk_user"
+
+
+async def test_no_header_falls_back_to_process_client() -> None:
+    """off-http (or headerless) calls dispatch to the client given at build time."""
+    from tests.conftest import Recorder
+
+    recorder = Recorder({"count": 3})
+    default_client = Semble(
+        api_key="sk_process",
+        http_client=httpx.Client(transport=httpx.MockTransport(recorder.handler)),
+    )
+
+    async with Client(build_server(default_client)) as session:
+        code = (
+            'unread = await call_tool("notifications_get_unread_count", {})\n'
+            'return unread["count"]\n'
+        )
+        result = await session.call_tool("execute", {"code": code})
+
+    assert result.content[0].text == "3"
+    assert recorder.last.headers["x-api-key"] == "sk_process"
