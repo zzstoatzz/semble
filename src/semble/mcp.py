@@ -23,7 +23,8 @@ try:
     from fastmcp.server.dependencies import get_http_headers
 except ImportError as exc:  # pragma: no cover
     raise SystemExit(
-        "the semble mcp server requires the `mcp` extra: uv add 'semble-api[mcp]'"
+        "semble-mcp needs fastmcp>=3.4.2 with code mode support "
+        f"(install via the `mcp` extra: uv add 'semble-api[mcp]'). import failed: {exc}"
     ) from exc
 
 from semble import Semble
