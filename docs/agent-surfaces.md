@@ -8,7 +8,7 @@ this package ships three surfaces for the same api: a python sdk, a cli, and an 
 | ------- | ------- | --------------- |
 | sdk     | `uv add semble-api` | python you're writing (scripts, pydantic-ai tools, pipelines) |
 | cli     | `uv add 'semble-api[cli]'` / `uvx` | something with a shell (claude code, codex, a cron job) |
-| mcp     | `claude mcp add semble -e SEMBLE_API_KEY=... -- uvx --from 'semble-api[mcp]' semble-mcp` | an mcp client, especially one without a shell (claude desktop, cursor) |
+| mcp     | hosted: `claude mcp add semble --transport http https://semble.fastmcp.app/mcp -H "x-semble-api-key: your-key"` · stdio: `claude mcp add semble -e SEMBLE_API_KEY=... -- uvx --from 'semble-api[mcp]' semble-mcp` | an mcp client, especially one without a shell (claude desktop, cursor) |
 
 ## the sdk
 
