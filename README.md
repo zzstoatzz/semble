@@ -127,7 +127,13 @@ for other mcp clients (claude desktop, cursor, ...), the equivalent json config:
 
 the key is optional — without it the server is limited to public reads. the server also picks up `SEMBLE_API_KEY` from the environment or a `.env` in the working directory, so inside a checkout of this repo a plain `claude mcp add semble -- uv run --directory /path/to/this/repo semble-mcp` works too.
 
-hosted (http) deployments resolve auth per request instead: send your key as an `x-semble-api-key` header and it's used only for the calls that request triggers — one shared server url serves many users without holding anyone's identity. no header means public reads. `requirements.horizon.txt` exists for hosting platforms whose builders can't install extras from pyproject.toml.
+hosted (http) deployments resolve auth per request instead: send your key as an `x-semble-api-key` header and it's used only for the calls that request triggers — one shared server url serves many users without holding anyone's identity. no header means public reads. a hosted instance runs at `https://semble.fastmcp.app/mcp`:
+
+```bash
+claude mcp add semble --transport http https://semble.fastmcp.app/mcp -H "x-semble-api-key: your-key"
+```
+
+`requirements.horizon.txt` exists for hosting platforms whose builders can't install extras from pyproject.toml.
 
 ## examples
 
