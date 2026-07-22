@@ -1,6 +1,17 @@
 version = 1
 revision = 3
 requires-python = ">=3.12"
+resolution-markers = [
+    "python_full_version >= '3.14'",
+    "python_full_version < '3.14'",
+]
+
+[manifest]
+constraints = [
+    { name = "fastmcp-slim", specifier = "==4.0.0a1" },
+    { name = "mcp", specifier = "==2.0.0b2" },
+    { name = "mcp-types", specifier = "==2.0.0b2" },
+]
 
 [[package]]
 name = "aiofile"
@@ -95,15 +106,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/87/a4/e534cf7d2d0e8d880e25dd61e8d921ffcfe15bd696734589826f5a2df727/caio-0.9.25-cp314-cp314-manylinux_2_34_aarch64.whl", hash = "sha256:628a630eb7fb22381dd8e3c8ab7f59e854b9c806639811fc3f4310c6bd711d79", size = 81565, upload-time = "2026-03-04T22:08:27.483Z" },
     { url = "https://files.pythonhosted.org/packages/3f/ed/bf81aeac1d290017e5e5ac3e880fd56ee15e50a6d0353986799d1bc5cfd5/caio-0.9.25-cp314-cp314-manylinux_2_34_x86_64.whl", hash = "sha256:0ba16aa605ccb174665357fc729cf500679c2d94d5f1458a6f0d5ca48f2060a7", size = 80071, upload-time = "2026-03-04T22:08:28.751Z" },
     { url = "https://files.pythonhosted.org/packages/86/93/1f76c8d1bafe3b0614e06b2195784a3765bbf7b0a067661af9e2dd47fc33/caio-0.9.25-py3-none-any.whl", hash = "sha256:06c0bb02d6b929119b1cfbe1ca403c768b2013a369e2db46bfa2a5761cf82e40", size = 19087, upload-time = "2025-12-26T15:22:00.221Z" },
-]
-
-[[package]]
-name = "certifi"
-version = "2026.5.20"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/ce/ee2ecad540810a79593028e88299baeae54d346cc7a0d94b6199988b89b1/certifi-2026.5.20.tar.gz", hash = "sha256:69dea482ab64caa7b9f6aba1c6bf48bb6a5448d1c0f1b17ab42ad8c763a5344d", size = 135422, upload-time = "2026-05-20T11:46:50.073Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/8c/57e832b7af6d7c5abe66eb3fbe3a3a32f4d11ea23a1aa7131371035be991/certifi-2026.5.20-py3-none-any.whl", hash = "sha256:3c52e209ba0a4ad7aebe60436a4ab349c39e1e602e8c134221e546902ad25897", size = 134134, upload-time = "2026-05-20T11:46:48.578Z" },
 ]
 
 [[package]]
@@ -297,14 +299,14 @@ wheels = [
 
 [[package]]
 name = "fastmcp"
-version = "3.4.2"
+version = "4.0.0a1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastmcp-slim", extra = ["client", "server"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/29/18/46beaec18c9f86a599ae3f9cdf6677dd6b50240cfd844d18233710b47f13/fastmcp-3.4.2.tar.gz", hash = "sha256:b468722946fc467c3796a6572f7a14d93d48c014cf8fea12910245220cbbe4e1", size = 28756849, upload-time = "2026-06-06T01:30:35.694Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/df/c3/02235a2a88c6e910c367d83bb6d4095c4c191c352839acd87012e56de1ad/fastmcp-4.0.0a1.tar.gz", hash = "sha256:c158f77d4cd676b5cd56902dd3e356221493b90a0d1e6a292ca611228eaea62b", size = 29080816, upload-time = "2026-07-21T21:19:46.331Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/4d/8b1ba42251160e11ca34686344572121432c23a082d56ef6bbdec5888fc1/fastmcp-3.4.2-py3-none-any.whl", hash = "sha256:c87a62b029f0c5400ada85f683629345d2466c39169f0cb853e487b2f7308c08", size = 8018, upload-time = "2026-06-06T01:30:38.118Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/42/3e12bd7e79e3da1150a473a3baec5fd117174081577214baf5a443c89aea/fastmcp-4.0.0a1-py3-none-any.whl", hash = "sha256:602b46aa87da050f3878dfb81718cd4f15cda16d909141ae1a148c2fbf22a42a", size = 8037, upload-time = "2026-07-21T21:19:44.371Z" },
 ]
 
 [package.optional-dependencies]
@@ -314,9 +316,10 @@ code-mode = [
 
 [[package]]
 name = "fastmcp-slim"
-version = "3.4.2"
+version = "4.0.0a1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "mcp-types" },
     { name = "platformdirs" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
@@ -324,16 +327,16 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/2e/d627b28b7403ecc526991ef732921b08bde010006e6148635f053fd29f4c/fastmcp_slim-3.4.2.tar.gz", hash = "sha256:290646e0955a516235a317151034559aa48336cb843d3f006131aedad8759bb4", size = 576291, upload-time = "2026-06-06T01:30:12.553Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0e/2d/e25c8f682f2ad2e4387a076134f22cd57eb57aea6844c746670497120076/fastmcp_slim-4.0.0a1.tar.gz", hash = "sha256:df05d52b7a3ef55c55399832122e1fe8daa8f71e440524434122daaa302822e7", size = 676718, upload-time = "2026-07-21T21:19:25.181Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f7/58/22afebf18df7260b09148199cbeb90cdcc4b3a4e1b5d7460e3591c3a7add/fastmcp_slim-3.4.2-py3-none-any.whl", hash = "sha256:bdc72492212681ca502755fa8acc0457f559295da1fc3dfc0599adc1c04b82f3", size = 749195, upload-time = "2026-06-06T01:30:11.22Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/81/4388ec6d416b24e8a86eada7d756b28ec581a91afdcd37569b58012783b3/fastmcp_slim-4.0.0a1-py3-none-any.whl", hash = "sha256:f8e339bb7ebe15e5fa4b4f720f1a5f1a1e532ddad7fc8e111a66d214b60dd8c0", size = 855780, upload-time = "2026-07-21T21:19:23.485Z" },
 ]
 
 [package.optional-dependencies]
 client = [
     { name = "authlib" },
     { name = "exceptiongroup" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "mcp" },
     { name = "opentelemetry-api" },
     { name = "py-key-value-aio", extra = ["filetree", "keyring", "memory"] },
@@ -347,7 +350,7 @@ server = [
     { name = "cyclopts" },
     { name = "exceptiongroup" },
     { name = "griffelib" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "joserfc" },
     { name = "jsonref" },
     { name = "jsonschema-path" },
@@ -385,68 +388,32 @@ wheels = [
 ]
 
 [[package]]
-name = "httpcore"
-version = "1.0.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "certifi" },
-    { name = "h11" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8", size = 85484, upload-time = "2025-04-24T22:06:22.219Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55", size = 78784, upload-time = "2025-04-24T22:06:20.566Z" },
-]
-
-[[package]]
 name = "httpcore2"
-version = "2.3.0"
+version = "2.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "h11" },
     { name = "truststore" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e6/34/18f1c596e677962f040284246f393b10a1f8ce440b3a7e69c637d0f1c7ad/httpcore2-2.3.0.tar.gz", hash = "sha256:07327e251560960eea8e969d92d4c6a325feb13cca39e25340731336c3baf924", size = 64300, upload-time = "2026-06-01T13:15:02.998Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/fe/6a3f9f1a8bb8733326140737446aaf72fddb8b54b8f202302f5c84960613/httpcore2-2.7.0.tar.gz", hash = "sha256:6dc0fedf329a52a990930a5579edfebaea81118ea700ea0dd7de2b5e5be49efc", size = 65593, upload-time = "2026-07-14T20:40:01.111Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/dd/3357218c69360d1cecc196c230c9a1d5c9afd5dba362056e23e60a5e64e5/httpcore2-2.3.0-py3-none-any.whl", hash = "sha256:477e9e334f74e5240dcac002e890580f36a57d40ff0fb14cc9655731d23b8415", size = 80024, upload-time = "2026-06-01T13:15:00.001Z" },
-]
-
-[[package]]
-name = "httpx"
-version = "0.28.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "certifi" },
-    { name = "httpcore" },
-    { name = "idna" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
-]
-
-[[package]]
-name = "httpx-sse"
-version = "0.4.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0f/4c/751061ffa58615a32c31b2d82e8482be8dd4a89154f003147acee90f2be9/httpx_sse-0.4.3.tar.gz", hash = "sha256:9b1ed0127459a66014aec3c56bebd93da3c1bc8bb6618c8082039a44889a755d", size = 15943, upload-time = "2025-10-10T21:48:22.271Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/fd/6668e5aec43ab844de6fc74927e155a3b37bf40d7c3790e49fc0406b6578/httpx_sse-0.4.3-py3-none-any.whl", hash = "sha256:0ac1c9fe3c0afad2e0ebb25a934a59f4c7823b60792691f779fad2c5568830fc", size = 8960, upload-time = "2025-10-10T21:48:21.158Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/6c/62e2e279e63fc4f7a5ee841ef13175a8bbc613f258e9dcc186e9de803a42/httpcore2-2.7.0-py3-none-any.whl", hash = "sha256:1452f589fe23f55b44546cd884294c41a29330af902bc0b71a761fd52d18f92b", size = 81506, upload-time = "2026-07-14T20:39:58.053Z" },
 ]
 
 [[package]]
 name = "httpx2"
-version = "2.3.0"
+version = "2.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "httpcore2" },
     { name = "idna" },
     { name = "truststore" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/9a/cca0b9145f13d8ae34b885ae28d403a1469a433abc78e0f94f4ce94e650b/httpx2-2.3.0.tar.gz", hash = "sha256:227e7c41d95a76d4077a52640564132777215fc3394e07b66a3116c33d668fa9", size = 81115, upload-time = "2026-06-01T13:15:04.324Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/4a/129b2e21b90ac2985d3928d96792bccc39bc6dfe796c5eee2d8ec06d4105/httpx2-2.7.0.tar.gz", hash = "sha256:8b30709aed5c8465b0dd3b95c09ce301c8f79e7e7a2d00ab0af551e0d0375b07", size = 94487, upload-time = "2026-07-14T20:40:02.318Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/ce/ae2911859847f9ba1d6b23027e53481cbeb50b93234f355a968d300ca2cb/httpx2-2.3.0-py3-none-any.whl", hash = "sha256:6f393663bdf6dbe7fe90118e3eb5b2bd024a675cae0390ac08cec9198812d8b7", size = 74538, upload-time = "2026-06-01T13:15:01.566Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/b8/c341bba6411bdfda786020343c47a75ef472f6085caf82391b142b1a3ad9/httpx2-2.7.0-py3-none-any.whl", hash = "sha256:ed2a2719c696789e09493bd8e2bec3d8bd925cc6e26b68389ec25ade132f7bf4", size = 90234, upload-time = "2026-07-14T20:39:59.531Z" },
 ]
 
 [[package]]
@@ -603,13 +570,14 @@ wheels = [
 
 [[package]]
 name = "mcp"
-version = "1.27.2"
+version = "2.0.0b2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
-    { name = "httpx" },
-    { name = "httpx-sse" },
+    { name = "httpx2" },
     { name = "jsonschema" },
+    { name = "mcp-types" },
+    { name = "opentelemetry-api" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyjwt", extra = ["crypto"] },
@@ -621,9 +589,22 @@ dependencies = [
     { name = "typing-inspection" },
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/27/3c/347cf965d313f5d41764e7d46bea6ffe7d9ef13b983cc429b0340962a082/mcp-1.27.2.tar.gz", hash = "sha256:8e02db104096d1c25b28e64bde29a5c32b31bc241710213e12fd4d84985bdfef", size = 621116, upload-time = "2026-05-29T17:16:04.039Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/aa/c5d38e0199304494be6370667d04d93d8681d9bdc864d56678250dbd3f3b/mcp-2.0.0b2.tar.gz", hash = "sha256:0528d0d38ae798fbff251616ec687faaaa8f5309571e0b2bc553c530fa10b8b1", size = 1590650, upload-time = "2026-07-14T16:47:57.897Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/11/252c6f971dc4f16af1d98a1c469d8ba523aab00d1bb76b4d3bc1ff32eacc/mcp-1.27.2-py3-none-any.whl", hash = "sha256:d6ff5160c6ca65d93013626efb3fc249de683c30b2d8570755ceddd490344de5", size = 220498, upload-time = "2026-05-29T17:16:02.442Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/90/187d6283a304acc6954987992ef17e2515739a649f148dc8b67b302e1bbd/mcp-2.0.0b2-py3-none-any.whl", hash = "sha256:9c50ae5afa08960ab76d50aa3adab3184952d9bea7ef87f4a4a5ba68bdefcf0a", size = 334286, upload-time = "2026-07-14T16:47:54.768Z" },
+]
+
+[[package]]
+name = "mcp-types"
+version = "2.0.0b2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ad/21/db529130ac8edd1d844fc322862afeceaf2b7f610a591fa528002b022e07/mcp_types-2.0.0b2.tar.gz", hash = "sha256:094fa7160106819ab39a1586179c3a9f070bfd833d0a6f8fcb30a54a986cc402", size = 65877, upload-time = "2026-07-14T16:47:59.198Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/e1/c466ceacdaa929396d35ad45176398acd0c416fead0970d3ad22618a19d7/mcp_types-2.0.0b2-py3-none-any.whl", hash = "sha256:35c9c33abb90a77dc6ad1daecaa6407c788c2f32d14d52dad8f843c4f008eae2", size = 68944, upload-time = "2026-07-14T16:47:56.493Z" },
 ]
 
 [[package]]
@@ -1304,7 +1285,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cyclopts", marker = "extra == 'cli'", specifier = ">=4.17.0" },
-    { name = "fastmcp", extras = ["code-mode"], marker = "extra == 'mcp'", specifier = ">=3.4.2" },
+    { name = "fastmcp", extras = ["code-mode"], marker = "extra == 'mcp'", specifier = "==4.0.0a1" },
     { name = "httpx2", specifier = ">=2.3.0" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
@@ -1314,7 +1295,7 @@ provides-extras = ["cli", "mcp"]
 [package.metadata.requires-dev]
 dev = [
     { name = "cyclopts", specifier = ">=4.17.0" },
-    { name = "fastmcp", extras = ["code-mode"], specifier = ">=3.4.2" },
+    { name = "fastmcp", extras = ["code-mode"], specifier = "==4.0.0a1" },
     { name = "prek", specifier = ">=0.2.0" },
     { name = "pytest", specifier = ">=8.3.0" },
     { name = "pytest-asyncio", specifier = ">=0.25.0" },

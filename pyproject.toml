@@ -32,7 +32,7 @@ cli = [
     "cyclopts>=4.17.0",
 ]
 mcp = [
-    "fastmcp[code-mode]>=3.4.2",
+    "fastmcp[code-mode]==4.0.0a1",
 ]
 
 [project.scripts]
@@ -48,7 +48,7 @@ dev = [
     "prek>=0.2.0",
     "ty>=0.0.1a25",
     "cyclopts>=4.17.0",
-    "fastmcp[code-mode]>=3.4.2",
+    "fastmcp[code-mode]==4.0.0a1",
 ]
 
 [build-system]
@@ -66,6 +66,13 @@ vcs = "git"
 style = "pep440"
 bump = true
 fallback-version = "0.0.0"
+
+[tool.uv]
+constraint-dependencies = [
+    "fastmcp-slim==4.0.0a1",
+    "mcp==2.0.0b2",
+    "mcp-types==2.0.0b2",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
