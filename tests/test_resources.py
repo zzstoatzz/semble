@@ -166,3 +166,43 @@ async def test_async_get_profile(async_client: AsyncClientFactory) -> None:
     user = await client.actors.get_profile("zzstoatzz.io", include_stats=True)
     assert recorder.last.url.params["identifier"] == "zzstoatzz.io"
     assert user.follower_count == 1
+
+
+def test_collection_add_card_with_uuid(sync_client: SyncClientFactory) -> None:
+    client, recorder = sync_client({})
+    client.collections.add_card("col_1", "card_1")
+    assert body_of(recorder.last) == {"cardId": "card_1", "addToCollections": ["col_1"]}
+    assert recorder.last.url.path.endswith("network.cosmik.card.updateUrlAssociations")
+
+
+def test_collection_add_card_resolves_at_uri(sync_client: SyncClientFactory) -> None:
+    client, recorder = sync_client({"id": "col_uuid"})
+    client.collections.add_card(
+        "at://did:plc:abc/network.cosmik.collection/3mr3kuojygf2c", "card_1"
+    )
+    resolve, write = recorder.requests
+    assert resolve.url.params["handle"] == "did:plc:abc"
+    assert resolve.url.params["recordKey"] == "3mr3kuojygf2c"
+    assert body_of(write) == {"cardId": "card_1", "addToCollections": ["col_uuid"]}
+
+
+def test_collection_remove_card(sync_client: SyncClientFactory) -> None:
+    client, recorder = sync_client({})
+    client.collections.remove_card("col_1", "card_1")
+    assert body_of(recorder.last) == {
+        "cardId": "card_1",
+        "removeFromCollections": ["col_1"],
+    }
+
+
+async def test_collection_add_card_async_resolves_at_uri(
+    async_client: AsyncClientFactory,
+) -> None:
+    client, recorder = async_client({"id": "col_uuid"})
+    await client.collections.add_card(
+        "at://did:plc:abc/network.cosmik.collection/3mr3kuojygf2c", "card_1"
+    )
+    assert body_of(recorder.requests[1]) == {
+        "cardId": "card_1",
+        "addToCollections": ["col_uuid"],
+    }

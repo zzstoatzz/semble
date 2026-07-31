@@ -95,6 +95,35 @@ class Collections(SyncResource):
             "network.cosmik.collection.delete", {"collectionId": collection_id}
         )
 
+    def _resolve_id(self, collection_id: str) -> str:
+        if not collection_id.startswith("at://"):
+            return collection_id
+        _, _, rest = collection_id.partition("at://")
+        handle, _, record_key = rest.replace(
+            "/network.cosmik.collection/", "/"
+        ).partition("/")
+        resolved = self.get_by_at_uri(handle, record_key, limit=1).id
+        if resolved is None:
+            raise ValueError(f"could not resolve collection at-uri: {collection_id}")
+        return resolved
+
+    def add_card(self, collection_id: str, card_id: str) -> None:
+        """add a card to a collection. accepts a collection uuid or at-uri."""
+        self._client.post(
+            "network.cosmik.card.updateUrlAssociations",
+            {"cardId": card_id, "addToCollections": [self._resolve_id(collection_id)]},
+        )
+
+    def remove_card(self, collection_id: str, card_id: str) -> None:
+        """remove a card from a collection. accepts a collection uuid or at-uri."""
+        self._client.post(
+            "network.cosmik.card.updateUrlAssociations",
+            {
+                "cardId": card_id,
+                "removeFromCollections": [self._resolve_id(collection_id)],
+            },
+        )
+
     def list_mine(
         self,
         *,
@@ -309,6 +338,38 @@ class AsyncCollections(AsyncResource):
     async def delete(self, collection_id: str) -> None:
         await self._client.post(
             "network.cosmik.collection.delete", {"collectionId": collection_id}
+        )
+
+    async def _resolve_id(self, collection_id: str) -> str:
+        if not collection_id.startswith("at://"):
+            return collection_id
+        _, _, rest = collection_id.partition("at://")
+        handle, _, record_key = rest.replace(
+            "/network.cosmik.collection/", "/"
+        ).partition("/")
+        resolved = (await self.get_by_at_uri(handle, record_key, limit=1)).id
+        if resolved is None:
+            raise ValueError(f"could not resolve collection at-uri: {collection_id}")
+        return resolved
+
+    async def add_card(self, collection_id: str, card_id: str) -> None:
+        """add a card to a collection. accepts a collection uuid or at-uri."""
+        await self._client.post(
+            "network.cosmik.card.updateUrlAssociations",
+            {
+                "cardId": card_id,
+                "addToCollections": [await self._resolve_id(collection_id)],
+            },
+        )
+
+    async def remove_card(self, collection_id: str, card_id: str) -> None:
+        """remove a card from a collection. accepts a collection uuid or at-uri."""
+        await self._client.post(
+            "network.cosmik.card.updateUrlAssociations",
+            {
+                "cardId": card_id,
+                "removeFromCollections": [await self._resolve_id(collection_id)],
+            },
         )
 
     async def list_mine(
