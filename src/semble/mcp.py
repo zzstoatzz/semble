@@ -40,6 +40,72 @@ from semble.resources._base import SyncResource
 
 API_KEY_HEADER = "x-semble-api-key"
 
+EXECUTE_DESCRIPTION = """Execute a SELF-CONTAINED Python program against the Semble SDK.
+
+FIRST call the MCP search tool directly to discover SDK tools. Do NOT start
+with execute to discover tools: await call_tool("search", ...) always fails.
+
+This is a stateless function, NOT a notebook or terminal:
+- Every invocation starts empty. Variables, imports, and fetched data from any
+  previous invocation DO NOT EXIST. Never refer to a previous call's variables.
+- Only the returned value is sent back to you. print() output is DISCARDED.
+  End your program with an explicit return containing the actual useful result.
+  Returning {"status": "done"} does not expose anything you printed or computed.
+- To use fetched data, fetch AND process it within the SAME invocation. If you
+  need another call, fetch again or explicitly include the small data you need.
+  Do not manually transcribe large API responses into Python literals.
+
+Workflow:
+1. Discover tool names and inspect their exact input and output schemas using
+   search or get_schema directly. Prefer search to select relevant schema fields.
+   Do not guess tool names, argument names, response fields, or pagination fields.
+2. Inside execute, use await call_tool("sdk_tool_name", {"argument": value}).
+   Only underlying SDK tools are callable here. search, get_schema, and execute
+   are NOT SDK tools and cannot be called through call_tool.
+3. Fetch the data, follow pagination until complete, and perform filtering,
+   deduplication, comparisons, counting, sorting, or aggregation in Python.
+   A requested limit does not prove all records were returned: check pagination.
+   SDK pagination uses current_page, total_pages, total_count, and has_more
+   (snake_case). It does NOT use has_next_page. Inspect the actual returned
+   pagination; missing/None fields are unknown, not proof there are no more pages.
+   len(response["items"]) counts ONE PAGE, not the total number of matches!
+   For total counts use pagination.total_count when supplied, or fetch every page.
+   For membership/comparison tasks, a total count alone cannot replace fetching
+   every page. These rules apply to EACH paginated endpoint you call.
+4. Return a SMALL computed result that directly supports your answer, including
+   relevant identifiers and counts. Do not return entire collections or lists
+   of records just to compare them by reading the model context yourself.
+5. Write the final answer from the returned values. Do not invent missing counts
+   or substitute zero when a field is missing. If data is unclear, inspect only
+   keys or one small sample, then run a new self-contained computation.
+
+Valid example (fetch and return in ONE call):
+r = await call_tool("notifications_get_unread_count", {})
+return {"unread": r["count"]}
+
+Counting example for any SDK response with items and pagination:
+p = response["pagination"]
+if p["total_count"] is not None:
+    count = p["total_count"]
+else:
+    # Fetch remaining pages using the inspected endpoint's page/cursor arguments
+    # and completion fields before counting. Do not assume len(items) is total.
+    raise ValueError("Inspect pagination and fetch remaining pages before counting")
+return {"count": count}
+
+Invalid: print(r) without returning it; referring to r in the next execute call;
+calling await call_tool("search", ...); returning full API responses instead of
+computing over them. Use basic Python operations; Monty is a limited Python
+sandbox, not a full Python installation. SDK results are already Python values,
+so you usually do not need JSON encoding or decoding.
+Use list comprehensions and indexing, not next(generator_expression): Monty
+does not provide normal Python generator semantics. For a first match, build
+matches = [x for x in values if condition] and use matches[0] after checking
+that matches is nonempty.
+For sort/max/min keys use a lambda, e.g. max(counts, key=lambda k: counts[k]),
+not a bound method such as key=counts.get (unsupported in Monty).
+"""
+
 
 def executable_search(get_catalog: GetToolCatalog) -> Tool:
     """Build discovery against the current, access-filtered SDK catalog."""
@@ -52,6 +118,8 @@ def executable_search(get_catalog: GetToolCatalog) -> Tool:
 
         `tools` is a dict keyed by tool name. Each value has name, description
         (optional), tags (list), inputSchema, and outputSchema (optional).
+        Inspect this dictionary with tools.keys() or tools.items(), not dir()
+        or reflection: tool names are dictionary keys, not Python globals.
         Schemas are JSON Schema: nested $ref values resolve within that schema's
         $defs. Filter by names, tags, descriptions, or schema fields and project
         only useful data. No ranking or result limit is applied automatically.
@@ -110,7 +178,12 @@ def build_server(client: Semble | None = None) -> FastMCP:
     client = client or Semble()
     mcp = FastMCP(
         "semble",
-        transforms=[CodeMode(discovery_tools=[executable_search, GetSchemas()])],
+        transforms=[
+            CodeMode(
+                discovery_tools=[executable_search, GetSchemas()],
+                execute_description=EXECUTE_DESCRIPTION,
+            )
+        ],
     )
     resources = {
         name: attr
