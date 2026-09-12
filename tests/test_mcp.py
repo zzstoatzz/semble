@@ -1,3 +1,5 @@
+import asyncio
+import json
 from typing import Any
 
 import httpx2 as httpx
@@ -26,8 +28,90 @@ async def test_clients_see_only_code_mode_tools() -> None:
 
 async def test_search_surfaces_sdk_methods() -> None:
     async with Client(build_server(mock_semble({}))) as session:
-        result = await session.call_tool("search", {"query": "semantic search urls"})
+        result = await session.call_tool(
+            "search", {"code": 'return [n for n in tools if "semantic" in n]'}
+        )
         assert "search_semantic" in result.content[0].text
+
+
+async def test_search_projects_real_schemas_without_sdk_requests() -> None:
+    from tests.conftest import Recorder
+
+    recorder = Recorder({})
+    client = Semble(
+        api_key="catalog-must-not-contain-this",
+        http_client=httpx.Client(transport=httpx.MockTransport(recorder.handler)),
+    )
+    async with Client(build_server(client)) as session:
+        result = await session.call_tool(
+            "search", {"code": 'return tools["collections_get"]'}
+        )
+        text = result.content[0].text
+        tool = json.loads(text)
+        assert tool["tags"] == ["collections"]
+        assert tool["inputSchema"]["required"] == ["collection_id"]
+        assert "url_cards" in tool["outputSchema"]["properties"]
+        assert "catalog-must-not-contain-this" not in text
+        result = await session.call_tool(
+            "search",
+            {
+                "code": 'return [n for n, t in tools.items() if "collections" in t["tags"]]'
+            },
+        )
+        assert "collections_get" in result.content[0].text
+        assert "notifications_" not in result.content[0].text
+    assert recorder.requests == []
+
+
+async def test_search_has_fresh_catalog_and_respects_visibility() -> None:
+    server = build_server(mock_semble({}))
+    async with Client(server) as session:
+        await session.call_tool("search", {"code": "tools.clear()\nreturn len(tools)"})
+        result = await session.call_tool(
+            "search", {"code": 'return "collections_get" in tools'}
+        )
+        assert result.content[0].text == "true"
+        server.disable(names={"collections_get"})
+        result = await session.call_tool(
+            "search", {"code": 'return "collections_get" in tools'}
+        )
+        assert result.content[0].text == "false"
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        'return await call_tool("notifications_get_unread_count", {})',
+        'return open("/etc/passwd").read()',
+        "import socket\nreturn socket.socket()",
+        'return __import__("os").environ',
+        'return tools["missing_tool"]',
+        "this is invalid python!",
+        "while True:\n    pass",
+        'return "x" * 200_000_000',
+    ],
+)
+async def test_search_rejects_unsafe_or_invalid_code_and_recovers(code: str) -> None:
+    async with Client(build_server(mock_semble({}))) as session:
+        result = await session.call_tool("search", {"code": code}, raise_on_error=False)
+        assert result.is_error
+        result = await session.call_tool(
+            "search", {"code": 'return [n for n in tools if n == "missing_tool"]'}
+        )
+        assert result.content[0].text == "[]"
+
+
+async def test_search_concurrent_calls_are_independent() -> None:
+    async with Client(build_server(mock_semble({}))) as session:
+        results = await asyncio.gather(
+            *[
+                session.call_tool("search", {"code": f"tools.clear()\nreturn {i}"})
+                for i in range(4)
+            ]
+        )
+        assert [r.content[0].text for r in results] == ["0", "1", "2", "3"]
+        result = await session.call_tool("search", {"code": "return len(tools) > 0"})
+        assert result.content[0].text == "true"
 
 
 async def test_get_schema_exposes_sdk_signature() -> None:
