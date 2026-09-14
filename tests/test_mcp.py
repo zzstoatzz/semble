@@ -257,3 +257,14 @@ def test_default_client_uses_nested_timeout(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr("semble.mcp.Semble", fake_semble)
     build_server()
     assert seen["timeout"] == NESTED_CALL_TIMEOUT
+
+
+async def test_schema_exposes_sort_by_values() -> None:
+    async with Client(build_server(mock_semble({}))) as session:
+        result = await session.call_tool(
+            "search",
+            {
+                "code": "return tools['cards_list_by_user']['inputSchema']['properties']['sort_by']"
+            },
+        )
+        assert "libraryCount" in result.content[0].text

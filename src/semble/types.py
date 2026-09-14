@@ -9,7 +9,7 @@ never break parsing.
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 
 URLType = Literal[
@@ -40,6 +40,9 @@ ConnectionType = Literal[
 ]
 
 SortOrder = Literal["asc", "desc"]
+CardSort = Literal["createdAt", "updatedAt", "libraryCount"]
+CollectionSort = Literal["name", "createdAt", "updatedAt", "cardCount", "addedAt"]
+ConnectionSort = Literal["createdAt", "updatedAt"]
 
 
 class Model(BaseModel):
@@ -79,6 +82,18 @@ class User(Model):
 
 
 class URLMetadata(Model):
+    """scraped page metadata. upstream stores whatever the source page
+    declared, so a field like author occasionally arrives as a number;
+    scalars are coerced to text rather than failing the whole page.
+    """
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _scalar_to_text(cls, value: object) -> object:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return value
+        return str(value)
+
     url: str | None = None
     title: str | None = None
     description: str | None = None

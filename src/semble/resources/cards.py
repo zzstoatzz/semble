@@ -6,6 +6,7 @@ from semble._utils import drop_none
 from semble.resources._base import AsyncResource, SyncResource
 from semble.types import (
     AddURLResponse,
+    CardSort,
     LibraryEntry,
     NoteCard,
     Page,
@@ -59,7 +60,7 @@ class Cards(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
         uncollected: bool | None = None,
@@ -85,7 +86,7 @@ class Cards(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
         uncollected: bool | None = None,
@@ -114,7 +115,7 @@ class Cards(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
@@ -164,7 +165,7 @@ class Cards(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[LibraryEntry]:
         """who has saved a url: paginated users whose libraries contain it, each
@@ -183,7 +184,7 @@ class Cards(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[NoteCard]:
         """every note anyone has written about a url, paginated, with each note's
@@ -251,7 +252,7 @@ class AsyncCards(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
         uncollected: bool | None = None,
@@ -277,7 +278,7 @@ class AsyncCards(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
         uncollected: bool | None = None,
@@ -306,7 +307,7 @@ class AsyncCards(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
@@ -358,7 +359,7 @@ class AsyncCards(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[LibraryEntry]:
         """who has saved a url: paginated users whose libraries contain it, each
@@ -377,7 +378,7 @@ class AsyncCards(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[NoteCard]:
         """every note anyone has written about a url, paginated, with each note's

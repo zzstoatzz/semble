@@ -4,8 +4,10 @@ from semble._utils import drop_none
 from semble.resources._base import AsyncResource, SyncResource
 from semble.types import (
     AccessType,
+    CardSort,
     Collection,
     CollectionDetail,
+    CollectionSort,
     CountResponse,
     IDResponse,
     Page,
@@ -38,7 +40,7 @@ class Collections(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
@@ -62,7 +64,7 @@ class Collections(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
@@ -144,7 +146,7 @@ class Collections(SyncResource):
         search_text: str | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """the authenticated user's own collections, paginated. `search_text`
@@ -168,7 +170,7 @@ class Collections(SyncResource):
         search_text: str | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """collections owned by a user, by handle or DID, paginated. `search_text`
@@ -192,7 +194,7 @@ class Collections(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """open collections a user has contributed cards to, by handle or DID,
@@ -217,7 +219,7 @@ class Collections(SyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """collections across Semble that contain a url, paginated."""
@@ -236,7 +238,7 @@ class Collections(SyncResource):
         access_type: AccessType | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """full-text search over collection names and descriptions across Semble,
@@ -313,7 +315,7 @@ class AsyncCollections(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
@@ -337,7 +339,7 @@ class AsyncCollections(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CardSort | None = None,
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
@@ -422,7 +424,7 @@ class AsyncCollections(AsyncResource):
         search_text: str | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """the authenticated user's own collections, paginated. `search_text`
@@ -446,7 +448,7 @@ class AsyncCollections(AsyncResource):
         search_text: str | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """collections owned by a user, by handle or DID, paginated. `search_text`
@@ -470,7 +472,7 @@ class AsyncCollections(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """open collections a user has contributed cards to, by handle or DID,
@@ -495,7 +497,7 @@ class AsyncCollections(AsyncResource):
         *,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """collections across Semble that contain a url, paginated."""
@@ -514,7 +516,7 @@ class AsyncCollections(AsyncResource):
         access_type: AccessType | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: CollectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
         """full-text search over collection names and descriptions across Semble,

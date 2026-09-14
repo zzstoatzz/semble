@@ -79,3 +79,26 @@ def test_strong_ref() -> None:
         "uri": "at://did:plc:x/network.cosmik.card/y",
         "cid": "bafy...",
     }
+
+
+def test_url_metadata_coerces_numeric_scalars() -> None:
+    from semble.types import URLMetadata
+
+    metadata = URLMetadata.model_validate({"author": 262588213843476, "title": "t"})
+    assert metadata.author == "262588213843476"
+    assert metadata.title == "t"
+
+
+def test_sort_by_is_an_enum_where_the_api_defines_one() -> None:
+    import inspect
+    from typing import get_args
+
+    from semble.resources.cards import Cards
+    from semble.resources.collections import Collections
+
+    cards_sort = inspect.signature(Cards.list_by_user).parameters["sort_by"].annotation
+    assert "libraryCount" in str(cards_sort) and get_args
+    collections_sort = (
+        inspect.signature(Collections.list_by_user).parameters["sort_by"].annotation
+    )
+    assert "cardCount" in str(collections_sort)

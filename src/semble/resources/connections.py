@@ -2,7 +2,14 @@
 
 from semble._utils import drop_none
 from semble.resources._base import AsyncResource, SyncResource
-from semble.types import ConnectionType, ConnectionView, IDResponse, Page, SortOrder
+from semble.types import (
+    ConnectionSort,
+    ConnectionType,
+    ConnectionView,
+    IDResponse,
+    Page,
+    SortOrder,
+)
 
 
 class Connections(SyncResource):
@@ -71,7 +78,7 @@ class Connections(SyncResource):
         connection_types: list[ConnectionType] | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: ConnectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
         """connections where a url is the source or the target, paginated; filter by
@@ -98,7 +105,7 @@ class Connections(SyncResource):
         connection_types: list[ConnectionType] | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: ConnectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
         """connections a user has created, by handle or DID, paginated; filter by
@@ -183,7 +190,7 @@ class AsyncConnections(AsyncResource):
         connection_types: list[ConnectionType] | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: ConnectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
         """connections where a url is the source or the target, paginated; filter by
@@ -210,7 +217,7 @@ class AsyncConnections(AsyncResource):
         connection_types: list[ConnectionType] | None = None,
         page: int | None = None,
         limit: int | None = None,
-        sort_by: str | None = None,
+        sort_by: ConnectionSort | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
         """connections a user has created, by handle or DID, paginated; filter by
