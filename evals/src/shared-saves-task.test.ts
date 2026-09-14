@@ -29,6 +29,11 @@ test("a complete, correctly attributed answer passes", () => {
   assert.equal(gradeSharedSaves(correct, evidence).verdict, "pass");
 });
 
+test("markdown links and trailing punctuation still match", () => {
+  const md = correct.replace("- https://a.example/one —", "- [one](https://a.example/one),").replace("- https://c.example/three —", "- (see https://c.example/three).");
+  assert.equal(gradeSharedSaves(md, evidence).verdict, "pass");
+});
+
 test("a longer URL sharing a prefix does not count as the shorter one", () => {
   const answer = correct.replace("https://a.example/one —", "https://a.example/one-more —");
   assert.equal(gradeSharedSaves(answer, evidence).verdict, "fail");

@@ -41,19 +41,28 @@ export function sharedFromLibraries(libraries: SharedSavesEvidence["libraries"])
     .sort((a, b) => a.url.localeCompare(b.url));
 }
 
-export function urlOccurrences(text: string, url: string) {
-  const positions: number[] = [];
-  for (const variant of new Set([url, `${url}/`])) {
-    let index = text.indexOf(variant);
-    while (index !== -1) {
-      const end = index + variant.length;
-      // `${url}/` must not count `${url}/more`; a bare url must not count a longer url sharing its prefix.
-      const next = text[end];
-      if (next === undefined || !/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]/.test(next) || (variant === url && next === "/" && !/[A-Za-z0-9]/.test(text[end + 1] ?? ""))) positions.push(index);
-      index = text.indexOf(variant, index + 1);
-    }
+const urlPattern = /https?:\/\/[^\s<>"`*]+/g;
+
+/** Trim the punctuation prose attaches to a URL: trailing .,;:!? and any unbalanced closing parens. */
+function trimUrl(raw: string) {
+  let url = raw.replace(/[.,;:!?\]]+$/, "");
+  while (url.endsWith(")") && (url.match(/\)/g)?.length ?? 0) > (url.match(/\(/g)?.length ?? 0)) url = url.slice(0, -1);
+  return url;
+}
+
+/** Every URL mentioned in the answer, canonicalized, with the offset of each mention. */
+export function answerUrlMentions(text: string) {
+  const mentions: { url: string; at: number }[] = [];
+  for (const match of text.matchAll(urlPattern)) {
+    const url = trimUrl(match[0]);
+    if (URL.canParse(url)) mentions.push({ url: canonicalUrl(url), at: match.index });
   }
-  return [...new Set(positions)].sort((a, b) => a - b);
+  return mentions;
+}
+
+export function urlOccurrences(text: string, url: string) {
+  const target = canonicalUrl(url);
+  return answerUrlMentions(text).filter((mention) => mention.url === target).map((mention) => mention.at);
 }
 
 /**
