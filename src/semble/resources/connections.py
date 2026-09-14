@@ -16,6 +16,10 @@ class Connections(SyncResource):
         connection_type: ConnectionType | None = None,
         note: str | None = None,
     ) -> IDResponse:
+        """create a typed link from a source url to a target url, with an optional
+        note saying why. the type is one of SUPPORTS, OPPOSES, ADDRESSES,
+        HELPFUL, LEADS_TO, RELATED, SUPPLEMENT, EXPLAINER.
+        """
         body = drop_none(
             sourceType=source_type,
             sourceValue=source_value,
@@ -37,6 +41,9 @@ class Connections(SyncResource):
         remove_note: bool | None = None,
         swap: bool | None = None,
     ) -> IDResponse:
+        """change a connection's type or note, remove its note, or swap its
+        direction.
+        """
         body = drop_none(
             connectionId=connection_id,
             connectionType=connection_type,
@@ -49,6 +56,7 @@ class Connections(SyncResource):
         )
 
     def delete(self, connection_id: str) -> IDResponse:
+        """permanently delete a connection created by the authenticated user."""
         return self._client.post(
             "network.cosmik.connection.delete",
             {"connectionId": connection_id},
@@ -66,6 +74,10 @@ class Connections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
+        """connections where a url is the source or the target, paginated; filter by
+        `direction` and connection types. report the curator, type, note and
+        direction as recorded rather than inferring them.
+        """
         params = drop_none(
             url=url,
             direction=direction,
@@ -89,6 +101,9 @@ class Connections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
+        """connections a user has created, by handle or DID, paginated; filter by
+        connection types.
+        """
         params = drop_none(
             identifier=identifier,
             connectionTypes=connection_types,
@@ -113,6 +128,10 @@ class AsyncConnections(AsyncResource):
         connection_type: ConnectionType | None = None,
         note: str | None = None,
     ) -> IDResponse:
+        """create a typed link from a source url to a target url, with an optional
+        note saying why. the type is one of SUPPORTS, OPPOSES, ADDRESSES,
+        HELPFUL, LEADS_TO, RELATED, SUPPLEMENT, EXPLAINER.
+        """
         body = drop_none(
             sourceType=source_type,
             sourceValue=source_value,
@@ -134,6 +153,9 @@ class AsyncConnections(AsyncResource):
         remove_note: bool | None = None,
         swap: bool | None = None,
     ) -> IDResponse:
+        """change a connection's type or note, remove its note, or swap its
+        direction.
+        """
         body = drop_none(
             connectionId=connection_id,
             connectionType=connection_type,
@@ -146,6 +168,7 @@ class AsyncConnections(AsyncResource):
         )
 
     async def delete(self, connection_id: str) -> IDResponse:
+        """permanently delete a connection created by the authenticated user."""
         return await self._client.post(
             "network.cosmik.connection.delete",
             {"connectionId": connection_id},
@@ -163,6 +186,10 @@ class AsyncConnections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
+        """connections where a url is the source or the target, paginated; filter by
+        `direction` and connection types. report the curator, type, note and
+        direction as recorded rather than inferring them.
+        """
         params = drop_none(
             url=url,
             direction=direction,
@@ -186,6 +213,9 @@ class AsyncConnections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[ConnectionView]:
+        """connections a user has created, by handle or DID, paginated; filter by
+        connection types.
+        """
         params = drop_none(
             identifier=identifier,
             connectionTypes=connection_types,

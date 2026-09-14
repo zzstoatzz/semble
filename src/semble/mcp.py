@@ -19,6 +19,8 @@ import json
 from collections.abc import Callable
 from functools import wraps
 
+import httpx2 as httpx
+
 try:
     from fastmcp import Context, FastMCP
     from fastmcp.experimental.transforms.code_mode import (
@@ -29,6 +31,7 @@ try:
     )
     from fastmcp.server.dependencies import get_http_headers
     from fastmcp.tools import Tool
+    from pydantic_monty import ResourceLimits
 except ImportError as exc:  # pragma: no cover
     raise SystemExit(
         "semble-mcp needs fastmcp>=3.4.2 with code mode support "
@@ -36,9 +39,19 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 from semble import Semble
+from semble._exceptions import SembleError
 from semble.resources._base import SyncResource
 
 API_KEY_HEADER = "x-semble-api-key"
+
+NESTED_CALL_TIMEOUT = 8.0
+"""seconds a single sdk call inside execute may wait on the semble api.
+
+the sdk default is 30s, the same as the execute budget, so one stalled
+endpoint used to consume a whole execute before the model heard about it.
+"""
+
+EXECUTE_LIMITS: ResourceLimits = {"max_duration_secs": 20.0, "max_memory": 100_000_000}
 
 EXECUTE_DESCRIPTION = """Execute a SELF-CONTAINED Python program against the Semble SDK.
 
@@ -78,6 +91,12 @@ Workflow:
 5. Write the final answer from the returned values. Do not invent missing counts
    or substitute zero when a field is missing. If data is unclear, inspect only
    keys or one small sample, then run a new self-contained computation.
+
+Budget: each execute may run for 20 seconds in total, and each SDK call inside
+it waits at most 8 seconds for the Semble API. A call that times out raises an
+error naming the method; do not retry it in a loop. Switch to another method
+that reaches the same data (for example, a user's library is readable directly
+by handle without first searching for their account).
 
 Valid example (fetch and return in ONE call):
 r = await call_tool("notifications_get_unread_count", {})
@@ -163,25 +182,34 @@ def _per_request[**P, R](
     @wraps(default_method)
     def tool(*args: P.args, **kwargs: P.kwargs) -> R:
         key = get_http_headers().get(API_KEY_HEADER)
-        if not key:
-            return default_method(*args, **kwargs)
-        with Semble(api_key=key) as client:
-            method: Callable[P, R] = getattr(
-                getattr(client, resource_name), method_name
-            )
-            return method(*args, **kwargs)
+        try:
+            if not key:
+                return default_method(*args, **kwargs)
+            with Semble(api_key=key, timeout=NESTED_CALL_TIMEOUT) as client:
+                method: Callable[P, R] = getattr(
+                    getattr(client, resource_name), method_name
+                )
+                return method(*args, **kwargs)
+        except httpx.TimeoutException as exc:
+            raise SembleError(
+                f"{resource_name}_{method_name}: the semble api did not respond "
+                f"within {NESTED_CALL_TIMEOUT:g}s. the endpoint may be degraded; "
+                "retrying the same call is unlikely to help, so use another "
+                "method that reaches the same data if one exists."
+            ) from exc
 
     return tool
 
 
 def build_server(client: Semble | None = None) -> FastMCP:
-    client = client or Semble()
+    client = client or Semble(timeout=NESTED_CALL_TIMEOUT)
     mcp = FastMCP(
         "semble",
         transforms=[
             CodeMode(
                 discovery_tools=[executable_search, GetSchemas()],
                 execute_description=EXECUTE_DESCRIPTION,
+                sandbox_provider=MontySandboxProvider(limits=EXECUTE_LIMITS),
             )
         ],
     )

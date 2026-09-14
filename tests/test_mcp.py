@@ -192,3 +192,68 @@ async def test_no_header_falls_back_to_process_client() -> None:
 
     assert result.content[0].text == "3"
     assert recorder.last.headers["x-api-key"] == "sk_process"
+
+
+async def test_every_catalog_tool_has_a_description() -> None:
+    """discovery filters on descriptions; a blank one hides the method from the model."""
+    async with Client(build_server(mock_semble({}))) as session:
+        result = await session.call_tool(
+            "search",
+            {
+                "code": "return sorted(n for n, t in tools.items() if not t.get('description'))"
+            },
+        )
+        assert json.loads(result.content[0].text) == []
+
+
+async def test_nested_call_timeout_is_short_and_named(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """a stalled endpoint fails fast inside execute and says which method stalled."""
+    from semble.mcp import NESTED_CALL_TIMEOUT
+
+    seen: dict[str, Any] = {}
+
+    def stalled(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("read timed out", request=request)
+
+    def fake_semble(api_key: str | None = None, **kwargs: Any) -> Semble:
+        seen.update(kwargs)
+        return Semble(
+            api_key=api_key,
+            http_client=httpx.Client(transport=httpx.MockTransport(stalled)),
+        )
+
+    monkeypatch.setattr("semble.mcp.Semble", fake_semble)
+    monkeypatch.setattr(
+        "semble.mcp.get_http_headers", lambda: {"x-semble-api-key": "sk_user"}
+    )
+
+    async with Client(build_server(mock_semble({}))) as session:
+        code = (
+            'r = await call_tool("search_get_accounts", {"q": "zzstoatzz"})\nreturn r\n'
+        )
+        result = await session.call_tool(
+            "execute", {"code": code}, raise_on_error=False
+        )
+
+    assert result.is_error
+    text = result.content[0].text
+    assert "search_get_accounts" in text
+    assert f"within {NESTED_CALL_TIMEOUT:g}s" in text
+    assert seen["timeout"] == NESTED_CALL_TIMEOUT
+    assert NESTED_CALL_TIMEOUT < 30
+
+
+def test_default_client_uses_nested_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    from semble.mcp import NESTED_CALL_TIMEOUT
+
+    seen: dict[str, Any] = {}
+
+    def fake_semble(**kwargs: Any) -> Semble:
+        seen.update(kwargs)
+        return mock_semble({})
+
+    monkeypatch.setattr("semble.mcp.Semble", fake_semble)
+    build_server()
+    assert seen["timeout"] == NESTED_CALL_TIMEOUT

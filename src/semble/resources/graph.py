@@ -7,6 +7,9 @@ from semble.types import Collection, CountResponse, IDResponse, Page, TargetType
 
 class Graph(SyncResource):
     def follow(self, target_id: str, target_type: TargetType) -> IDResponse:
+        """follow a user or a collection. `target_id` is the user's DID or the
+        collection's id.
+        """
         return self._client.post(
             "network.cosmik.graph.follow",
             {"targetId": target_id, "targetType": target_type},
@@ -14,6 +17,9 @@ class Graph(SyncResource):
         )
 
     def unfollow(self, target_id: str, target_type: TargetType) -> IDResponse:
+        """unfollow a user or a collection. `target_id` is the user's DID or the
+        collection's id.
+        """
         return self._client.post(
             "network.cosmik.graph.unfollow",
             {"targetId": target_id, "targetType": target_type},
@@ -27,6 +33,7 @@ class Graph(SyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users an account follows, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return self._client.get(
             "network.cosmik.graph.getFollowing", params, cast_to=Page[User]
@@ -39,6 +46,7 @@ class Graph(SyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who follow an account, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return self._client.get(
             "network.cosmik.graph.getFollowers", params, cast_to=Page[User]
@@ -51,6 +59,7 @@ class Graph(SyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[Collection]:
+        """collections an account follows, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return self._client.get(
             "network.cosmik.graph.getFollowingCollections",
@@ -59,6 +68,7 @@ class Graph(SyncResource):
         )
 
     def get_following_count(self, identifier: str) -> CountResponse:
+        """how many users an account follows, by handle or DID."""
         return self._client.get(
             "network.cosmik.graph.getFollowingCount",
             {"identifier": identifier},
@@ -66,6 +76,7 @@ class Graph(SyncResource):
         )
 
     def get_followers_count(self, identifier: str) -> CountResponse:
+        """how many users follow an account, by handle or DID."""
         return self._client.get(
             "network.cosmik.graph.getFollowersCount",
             {"identifier": identifier},
@@ -73,6 +84,7 @@ class Graph(SyncResource):
         )
 
     def get_following_collections_count(self, identifier: str) -> CountResponse:
+        """how many collections an account follows, by handle or DID."""
         return self._client.get(
             "network.cosmik.graph.getFollowingCollectionsCount",
             {"identifier": identifier},
@@ -82,6 +94,9 @@ class Graph(SyncResource):
 
 class AsyncGraph(AsyncResource):
     async def follow(self, target_id: str, target_type: TargetType) -> IDResponse:
+        """follow a user or a collection. `target_id` is the user's DID or the
+        collection's id.
+        """
         return await self._client.post(
             "network.cosmik.graph.follow",
             {"targetId": target_id, "targetType": target_type},
@@ -89,6 +104,9 @@ class AsyncGraph(AsyncResource):
         )
 
     async def unfollow(self, target_id: str, target_type: TargetType) -> IDResponse:
+        """unfollow a user or a collection. `target_id` is the user's DID or the
+        collection's id.
+        """
         return await self._client.post(
             "network.cosmik.graph.unfollow",
             {"targetId": target_id, "targetType": target_type},
@@ -102,6 +120,7 @@ class AsyncGraph(AsyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users an account follows, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return await self._client.get(
             "network.cosmik.graph.getFollowing", params, cast_to=Page[User]
@@ -114,6 +133,7 @@ class AsyncGraph(AsyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who follow an account, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return await self._client.get(
             "network.cosmik.graph.getFollowers", params, cast_to=Page[User]
@@ -126,6 +146,7 @@ class AsyncGraph(AsyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[Collection]:
+        """collections an account follows, by handle or DID, paginated."""
         params = drop_none(identifier=identifier, page=page, limit=limit)
         return await self._client.get(
             "network.cosmik.graph.getFollowingCollections",
@@ -134,6 +155,7 @@ class AsyncGraph(AsyncResource):
         )
 
     async def get_following_count(self, identifier: str) -> CountResponse:
+        """how many users an account follows, by handle or DID."""
         return await self._client.get(
             "network.cosmik.graph.getFollowingCount",
             {"identifier": identifier},
@@ -141,6 +163,7 @@ class AsyncGraph(AsyncResource):
         )
 
     async def get_followers_count(self, identifier: str) -> CountResponse:
+        """how many users follow an account, by handle or DID."""
         return await self._client.get(
             "network.cosmik.graph.getFollowersCount",
             {"identifier": identifier},
@@ -148,6 +171,7 @@ class AsyncGraph(AsyncResource):
         )
 
     async def get_following_collections_count(self, identifier: str) -> CountResponse:
+        """how many collections an account follows, by handle or DID."""
         return await self._client.get(
             "network.cosmik.graph.getFollowingCollectionsCount",
             {"identifier": identifier},

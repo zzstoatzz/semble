@@ -23,6 +23,10 @@ class Collections(SyncResource):
         description: str | None = None,
         access_type: AccessType | None = None,
     ) -> IDResponse:
+        """create a collection for the authenticated user. OPEN lets others
+        contribute cards; CLOSED means only the owner adds them. neither is
+        private.
+        """
         body = drop_none(name=name, description=description, accessType=access_type)
         return self._client.post(
             "network.cosmik.collection.create", body, cast_to=IDResponse
@@ -38,6 +42,7 @@ class Collections(SyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
+        """a collection with its cards, paginated, by collection id (uuid)."""
         params = drop_none(
             collectionId=collection_id,
             page=page,
@@ -61,6 +66,9 @@ class Collections(SyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
+        """a collection with its cards, looked up by the owner's handle and the
+        record key from its at:// uri.
+        """
         params = drop_none(
             handle=handle,
             recordKey=record_key,
@@ -82,6 +90,9 @@ class Collections(SyncResource):
         description: str | None = None,
         access_type: AccessType | None = None,
     ) -> None:
+        """rename a collection, change its description, or switch its access type
+        between OPEN and CLOSED.
+        """
         body = drop_none(
             collectionId=collection_id,
             name=name,
@@ -91,6 +102,9 @@ class Collections(SyncResource):
         self._client.post("network.cosmik.collection.update", body)
 
     def delete(self, collection_id: str) -> None:
+        """permanently delete a collection owned by the authenticated user. its
+        cards stay in the library.
+        """
         self._client.post(
             "network.cosmik.collection.delete", {"collectionId": collection_id}
         )
@@ -133,6 +147,9 @@ class Collections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """the authenticated user's own collections, paginated. `search_text`
+        filters by name or description.
+        """
         params = drop_none(
             searchText=search_text,
             page=page,
@@ -154,6 +171,9 @@ class Collections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """collections owned by a user, by handle or DID, paginated. `search_text`
+        filters by name or description.
+        """
         params = drop_none(
             identifier=identifier,
             searchText=search_text,
@@ -175,6 +195,9 @@ class Collections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """open collections a user has contributed cards to, by handle or DID,
+        paginated.
+        """
         params = drop_none(
             identifier=identifier,
             page=page,
@@ -197,6 +220,7 @@ class Collections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """collections across Semble that contain a url, paginated."""
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -215,6 +239,9 @@ class Collections(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """full-text search over collection names and descriptions across Semble,
+        optionally scoped to one user (`identifier`) or access type.
+        """
         params = drop_none(
             searchText=search_text,
             identifier=identifier,
@@ -235,12 +262,14 @@ class Collections(SyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who follow a collection, paginated."""
         params = drop_none(collectionId=collection_id, page=page, limit=limit)
         return self._client.get(
             "network.cosmik.collection.getFollowers", params, cast_to=Page[User]
         )
 
     def get_follower_count(self, collection_id: str) -> CountResponse:
+        """how many users follow a collection."""
         return self._client.get(
             "network.cosmik.collection.getFollowerCount",
             {"collectionId": collection_id},
@@ -254,6 +283,7 @@ class Collections(SyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who have added cards to a collection, paginated."""
         params = drop_none(collectionId=collection_id, page=page, limit=limit)
         return self._client.get(
             "network.cosmik.collection.getContributors", params, cast_to=Page[User]
@@ -268,6 +298,10 @@ class AsyncCollections(AsyncResource):
         description: str | None = None,
         access_type: AccessType | None = None,
     ) -> IDResponse:
+        """create a collection for the authenticated user. OPEN lets others
+        contribute cards; CLOSED means only the owner adds them. neither is
+        private.
+        """
         body = drop_none(name=name, description=description, accessType=access_type)
         return await self._client.post(
             "network.cosmik.collection.create", body, cast_to=IDResponse
@@ -283,6 +317,7 @@ class AsyncCollections(AsyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
+        """a collection with its cards, paginated, by collection id (uuid)."""
         params = drop_none(
             collectionId=collection_id,
             page=page,
@@ -306,6 +341,9 @@ class AsyncCollections(AsyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> CollectionDetail:
+        """a collection with its cards, looked up by the owner's handle and the
+        record key from its at:// uri.
+        """
         params = drop_none(
             handle=handle,
             recordKey=record_key,
@@ -327,6 +365,9 @@ class AsyncCollections(AsyncResource):
         description: str | None = None,
         access_type: AccessType | None = None,
     ) -> None:
+        """rename a collection, change its description, or switch its access type
+        between OPEN and CLOSED.
+        """
         body = drop_none(
             collectionId=collection_id,
             name=name,
@@ -336,6 +377,9 @@ class AsyncCollections(AsyncResource):
         await self._client.post("network.cosmik.collection.update", body)
 
     async def delete(self, collection_id: str) -> None:
+        """permanently delete a collection owned by the authenticated user. its
+        cards stay in the library.
+        """
         await self._client.post(
             "network.cosmik.collection.delete", {"collectionId": collection_id}
         )
@@ -381,6 +425,9 @@ class AsyncCollections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """the authenticated user's own collections, paginated. `search_text`
+        filters by name or description.
+        """
         params = drop_none(
             searchText=search_text,
             page=page,
@@ -402,6 +449,9 @@ class AsyncCollections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """collections owned by a user, by handle or DID, paginated. `search_text`
+        filters by name or description.
+        """
         params = drop_none(
             identifier=identifier,
             searchText=search_text,
@@ -423,6 +473,9 @@ class AsyncCollections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """open collections a user has contributed cards to, by handle or DID,
+        paginated.
+        """
         params = drop_none(
             identifier=identifier,
             page=page,
@@ -445,6 +498,7 @@ class AsyncCollections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """collections across Semble that contain a url, paginated."""
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -463,6 +517,9 @@ class AsyncCollections(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Collection]:
+        """full-text search over collection names and descriptions across Semble,
+        optionally scoped to one user (`identifier`) or access type.
+        """
         params = drop_none(
             searchText=search_text,
             identifier=identifier,
@@ -483,12 +540,14 @@ class AsyncCollections(AsyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who follow a collection, paginated."""
         params = drop_none(collectionId=collection_id, page=page, limit=limit)
         return await self._client.get(
             "network.cosmik.collection.getFollowers", params, cast_to=Page[User]
         )
 
     async def get_follower_count(self, collection_id: str) -> CountResponse:
+        """how many users follow a collection."""
         return await self._client.get(
             "network.cosmik.collection.getFollowerCount",
             {"collectionId": collection_id},
@@ -502,6 +561,7 @@ class AsyncCollections(AsyncResource):
         page: int | None = None,
         limit: int | None = None,
     ) -> Page[User]:
+        """users who have added cards to a collection, paginated."""
         params = drop_none(collectionId=collection_id, page=page, limit=limit)
         return await self._client.get(
             "network.cosmik.collection.getContributors", params, cast_to=Page[User]

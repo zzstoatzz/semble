@@ -19,6 +19,10 @@ class Feeds(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Activity]:
+        """recent activity across all of Semble, newest first, paginated. filter by
+        url type, source or activity types; `include_known_bots` keeps bot
+        activity.
+        """
         params = drop_none(
             urlType=url_type,
             source=source,
@@ -47,6 +51,9 @@ class Feeds(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Activity]:
+        """recent activity (saves, notes, collection adds) from the users and
+        collections the authenticated user follows, paginated.
+        """
         params = drop_none(
             urlType=url_type,
             source=source,
@@ -77,6 +84,10 @@ class AsyncFeeds(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Activity]:
+        """recent activity across all of Semble, newest first, paginated. filter by
+        url type, source or activity types; `include_known_bots` keeps bot
+        activity.
+        """
         params = drop_none(
             urlType=url_type,
             source=source,
@@ -105,6 +116,9 @@ class AsyncFeeds(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Activity]:
+        """recent activity (saves, notes, collection adds) from the users and
+        collections the authenticated user follows, paginated.
+        """
         params = drop_none(
             urlType=url_type,
             source=source,

@@ -19,6 +19,9 @@ class Notifications(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Notification]:
+        """the authenticated user's notifications, paginated. `unread_only` hides
+        ones already read.
+        """
         params = drop_none(
             unreadOnly=unread_only,
             page=page,
@@ -31,11 +34,13 @@ class Notifications(SyncResource):
         )
 
     def get_unread_count(self) -> CountResponse:
+        """how many unread notifications the authenticated user has."""
         return self._client.get(
             "network.cosmik.notification.getUnreadCount", cast_to=CountResponse
         )
 
     def mark_read(self, notification_ids: Sequence[str]) -> IDResponse:
+        """mark specific notifications as read by id."""
         return self._client.post(
             "network.cosmik.notification.markRead",
             {"notificationIds": [*notification_ids]},
@@ -43,6 +48,7 @@ class Notifications(SyncResource):
         )
 
     def mark_all_read(self) -> IDResponse:
+        """mark every notification of the authenticated user as read."""
         return self._client.post(
             "network.cosmik.notification.markAllRead", {}, cast_to=IDResponse
         )
@@ -58,6 +64,9 @@ class AsyncNotifications(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[Notification]:
+        """the authenticated user's notifications, paginated. `unread_only` hides
+        ones already read.
+        """
         params = drop_none(
             unreadOnly=unread_only,
             page=page,
@@ -70,11 +79,13 @@ class AsyncNotifications(AsyncResource):
         )
 
     async def get_unread_count(self) -> CountResponse:
+        """how many unread notifications the authenticated user has."""
         return await self._client.get(
             "network.cosmik.notification.getUnreadCount", cast_to=CountResponse
         )
 
     async def mark_read(self, notification_ids: Sequence[str]) -> IDResponse:
+        """mark specific notifications as read by id."""
         return await self._client.post(
             "network.cosmik.notification.markRead",
             {"notificationIds": [*notification_ids]},
@@ -82,6 +93,7 @@ class AsyncNotifications(AsyncResource):
         )
 
     async def mark_all_read(self) -> IDResponse:
+        """mark every notification of the authenticated user as read."""
         return await self._client.post(
             "network.cosmik.notification.markAllRead", {}, cast_to=IDResponse
         )

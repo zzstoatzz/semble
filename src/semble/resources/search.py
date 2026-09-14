@@ -18,6 +18,10 @@ class Search(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
+        """natural-language search over urls across Semble by meaning (vector
+        search). `identifier` scopes results to one user's library; `url_type`
+        filters by kind of content.
+        """
         params = drop_none(
             query=query,
             threshold=threshold,
@@ -43,6 +47,9 @@ class Search(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
+        """urls across Semble semantically similar to a given url (vector
+        similarity). `threshold` between 0 and 1 drops weak matches.
+        """
         params = drop_none(
             url=url,
             threshold=threshold,
@@ -64,6 +71,11 @@ class Search(SyncResource):
         limit: int | None = None,
         cursor: str | None = None,
     ) -> Page[User]:
+        """find Semble user accounts by a fragment of handle or display name (`q`).
+        only for discovering accounts you do not already know: with a known
+        handle or DID, call actors get_profile or cards list_by_user directly
+        instead.
+        """
         params = drop_none(term=term, q=q, limit=limit, cursor=cursor)
         return self._client.get(
             "network.cosmik.search.getAccounts", params, cast_to=Page[User]
@@ -83,6 +95,10 @@ class AsyncSearch(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
+        """natural-language search over urls across Semble by meaning (vector
+        search). `identifier` scopes results to one user's library; `url_type`
+        filters by kind of content.
+        """
         params = drop_none(
             query=query,
             threshold=threshold,
@@ -108,6 +124,9 @@ class AsyncSearch(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
+        """urls across Semble semantically similar to a given url (vector
+        similarity). `threshold` between 0 and 1 drops weak matches.
+        """
         params = drop_none(
             url=url,
             threshold=threshold,
@@ -129,6 +148,11 @@ class AsyncSearch(AsyncResource):
         limit: int | None = None,
         cursor: str | None = None,
     ) -> Page[User]:
+        """find Semble user accounts by a fragment of handle or display name (`q`).
+        only for discovering accounts you do not already know: with a known
+        handle or DID, call actors get_profile or cards list_by_user directly
+        instead.
+        """
         params = drop_none(term=term, q=q, limit=limit, cursor=cursor)
         return await self._client.get(
             "network.cosmik.search.getAccounts", params, cast_to=Page[User]

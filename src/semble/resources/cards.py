@@ -42,6 +42,9 @@ class Cards(SyncResource):
         add_to_collections: list[str] | None = None,
         remove_from_collections: list[str] | None = None,
     ) -> None:
+        """add a card to collections, remove it from collections, and set or update
+        its note, in one call.
+        """
         body = drop_none(
             cardId=card_id,
             note=note,
@@ -61,6 +64,9 @@ class Cards(SyncResource):
         url_type: URLType | None = None,
         uncollected: bool | None = None,
     ) -> Page[URLCard]:
+        """the authenticated user's own saved library (URL cards), paginated.
+        `uncollected` limits to cards not in any collection.
+        """
         params = drop_none(
             page=page,
             limit=limit,
@@ -84,6 +90,11 @@ class Cards(SyncResource):
         url_type: URLType | None = None,
         uncollected: bool | None = None,
     ) -> Page[URLCard]:
+        """a user's saved library: the URL cards (bookmarks) of any user by handle
+        or DID, paginated. this is the direct way to read someone's library when
+        you know who they are. `uncollected` limits to cards not in any
+        collection.
+        """
         params = drop_none(
             identifier=identifier,
             page=page,
@@ -107,6 +118,10 @@ class Cards(SyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
+        """full-text search over URL card titles, descriptions and urls across all
+        of Semble. not scoped to one user; use list_by_user to read a single
+        library.
+        """
         params = drop_none(
             searchQuery=search_query,
             page=page,
@@ -120,6 +135,7 @@ class Cards(SyncResource):
         )
 
     def get(self, card_id: str) -> URLCard:
+        """one URL card by card id, with its metadata, note and collections."""
         return self._client.get(
             "network.cosmik.card.get", {"cardId": card_id}, cast_to=URLCard
         )
@@ -127,12 +143,19 @@ class Cards(SyncResource):
     def get_url_metadata(
         self, url: str, *, include_stats: bool | None = None
     ) -> URLMetadataResponse:
+        """title, description and other metadata for any url, saved or not.
+        `include_stats` adds how many libraries and collections across Semble
+        hold it.
+        """
         params = drop_none(url=url, includeStats=include_stats)
         return self._client.get(
             "network.cosmik.card.getUrlMetadata", params, cast_to=URLMetadataResponse
         )
 
     def get_library_status(self, url: str) -> dict[str, Any]:
+        """whether the authenticated user has already saved a url, and which of
+        their collections hold it. check this before add_url to avoid duplicates.
+        """
         return self._client.get("network.cosmik.card.getLibraryStatus", {"url": url})
 
     def get_libraries_for_url(
@@ -144,6 +167,9 @@ class Cards(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[LibraryEntry]:
+        """who has saved a url: paginated users whose libraries contain it, each
+        with their own card and note.
+        """
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -160,6 +186,9 @@ class Cards(SyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[NoteCard]:
+        """every note anyone has written about a url, paginated, with each note's
+        author.
+        """
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -175,6 +204,7 @@ class Cards(SyncResource):
         )
 
     def remove_from_library(self, card_id: str) -> None:
+        """remove a card from the authenticated user's library."""
         self._client.post("network.cosmik.card.removeFromLibrary", {"cardId": card_id})
 
 
@@ -204,6 +234,9 @@ class AsyncCards(AsyncResource):
         add_to_collections: list[str] | None = None,
         remove_from_collections: list[str] | None = None,
     ) -> None:
+        """add a card to collections, remove it from collections, and set or update
+        its note, in one call.
+        """
         body = drop_none(
             cardId=card_id,
             note=note,
@@ -223,6 +256,9 @@ class AsyncCards(AsyncResource):
         url_type: URLType | None = None,
         uncollected: bool | None = None,
     ) -> Page[URLCard]:
+        """the authenticated user's own saved library (URL cards), paginated.
+        `uncollected` limits to cards not in any collection.
+        """
         params = drop_none(
             page=page,
             limit=limit,
@@ -246,6 +282,11 @@ class AsyncCards(AsyncResource):
         url_type: URLType | None = None,
         uncollected: bool | None = None,
     ) -> Page[URLCard]:
+        """a user's saved library: the URL cards (bookmarks) of any user by handle
+        or DID, paginated. this is the direct way to read someone's library when
+        you know who they are. `uncollected` limits to cards not in any
+        collection.
+        """
         params = drop_none(
             identifier=identifier,
             page=page,
@@ -269,6 +310,10 @@ class AsyncCards(AsyncResource):
         sort_order: SortOrder | None = None,
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
+        """full-text search over URL card titles, descriptions and urls across all
+        of Semble. not scoped to one user; use list_by_user to read a single
+        library.
+        """
         params = drop_none(
             searchQuery=search_query,
             page=page,
@@ -282,6 +327,7 @@ class AsyncCards(AsyncResource):
         )
 
     async def get(self, card_id: str) -> URLCard:
+        """one URL card by card id, with its metadata, note and collections."""
         return await self._client.get(
             "network.cosmik.card.get", {"cardId": card_id}, cast_to=URLCard
         )
@@ -289,12 +335,19 @@ class AsyncCards(AsyncResource):
     async def get_url_metadata(
         self, url: str, *, include_stats: bool | None = None
     ) -> URLMetadataResponse:
+        """title, description and other metadata for any url, saved or not.
+        `include_stats` adds how many libraries and collections across Semble
+        hold it.
+        """
         params = drop_none(url=url, includeStats=include_stats)
         return await self._client.get(
             "network.cosmik.card.getUrlMetadata", params, cast_to=URLMetadataResponse
         )
 
     async def get_library_status(self, url: str) -> dict[str, Any]:
+        """whether the authenticated user has already saved a url, and which of
+        their collections hold it. check this before add_url to avoid duplicates.
+        """
         return await self._client.get(
             "network.cosmik.card.getLibraryStatus", {"url": url}
         )
@@ -308,6 +361,9 @@ class AsyncCards(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[LibraryEntry]:
+        """who has saved a url: paginated users whose libraries contain it, each
+        with their own card and note.
+        """
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -324,6 +380,9 @@ class AsyncCards(AsyncResource):
         sort_by: str | None = None,
         sort_order: SortOrder | None = None,
     ) -> Page[NoteCard]:
+        """every note anyone has written about a url, paginated, with each note's
+        author.
+        """
         params = drop_none(
             url=url, page=page, limit=limit, sortBy=sort_by, sortOrder=sort_order
         )
@@ -339,6 +398,7 @@ class AsyncCards(AsyncResource):
         )
 
     async def remove_from_library(self, card_id: str) -> None:
+        """remove a card from the authenticated user's library."""
         await self._client.post(
             "network.cosmik.card.removeFromLibrary", {"cardId": card_id}
         )
