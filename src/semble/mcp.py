@@ -88,6 +88,10 @@ Workflow:
 4. Return a SMALL computed result that directly supports your answer, including
    relevant identifiers and counts. Do not return entire collections or lists
    of records just to compare them by reading the model context yourself.
+   When the answer must explain or justify choices (recommendations, filing,
+   summaries), include the titles, descriptions, notes, and counts of the items
+   you will discuss: that is evidence you need, not bloat. Projecting only urls
+   leaves you unable to connect choices to what the user actually saved.
 5. Write the final answer from the returned values. Do not invent missing counts
    or substitute zero when a field is missing. If data is unclear, inspect only
    keys or one small sample, then run a new self-contained computation.
