@@ -51,7 +51,7 @@ the sdk default is 30s, the same as the execute budget, so one stalled
 endpoint used to consume a whole execute before the model heard about it.
 """
 
-EXECUTE_LIMITS: ResourceLimits = {"max_duration_secs": 30.0, "max_memory": 100_000_000}
+EXECUTE_LIMITS: ResourceLimits = {"max_duration_secs": 60.0, "max_memory": 100_000_000}
 
 EXECUTE_DESCRIPTION = """Execute a SELF-CONTAINED Python program against the Semble SDK.
 
@@ -96,7 +96,7 @@ Workflow:
    or substitute zero when a field is missing. If data is unclear, inspect only
    keys or one small sample, then run a new self-contained computation.
 
-Budget: each execute may run for 30 seconds in total, and each SDK call inside
+Budget: each execute may run for 60 seconds in total, and each SDK call inside
 it waits at most 8 seconds for the Semble API. A call that times out raises an
 error naming the method; do not retry it in a loop. Switch to another method
 that reaches the same data (for example, a user's library is readable directly
