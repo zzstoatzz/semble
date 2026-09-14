@@ -27,9 +27,9 @@ Not archived, 19.4k stars, 340 open issues, last push 2026-04-14. The last conte
 6. **Tiered task sets.** MCPMark keeps an "easy" set of 10 per service for smoke and CI and a standard set for reporting. We should have a cheap smoke tier and a reporting tier, and never tune on the reporting tier.
 7. **Live ground truth computed at grade time.** MCP-Universe's evaluator functions and our before/after checkers are the same idea. Keep it, and keep the drift check that turns changed state into "inconclusive".
 
-## Should we move off the Pi harness?
+## The harness stays on Pi
 
-Inspect AI is the one general framework here that is maintained, has MCP as a first-class tool source, and gives multi-model matrices, epochs with reducers, eval-set retry/resume, and a log viewer for free. The cost is a Python rewrite of a working TypeScript harness and losing Pi's agent loop as the actor. Given the earlier decision to use Pi, the pragmatic path is to keep the harness and adopt the principles above: pass^k and infra-error reporting in the summary, grading-version guards, a smoke tier, and more state-graded tasks. Revisit Inspect if the suite outgrows one machine or needs sandboxed local MCP servers.
+The harness is TypeScript on Pi's agent loop by decision, after moving away from the pytest pattern in prefect-mcp-server. Inspect AI and MCPMark are Python and are listed here for their designs, not as migration targets. Everything in the principles above is a summary or task-definition change inside the existing harness: pass^k and infra-error columns in `summary.ts`, a grading-version guard, a smoke tier, and more state-graded tasks.
 
 ## Task shapes to add, adapted from MCPMark categories
 
