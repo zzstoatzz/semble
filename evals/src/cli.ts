@@ -8,6 +8,8 @@ import { runEval } from "./runner.js";
 import { z } from "zod";
 import { RecommendationCase, recommendationPrompt, runRecommendationTask } from "./recommendation-task.js";
 import { runSharedSavesTask, sharedSavesPrompt } from "./shared-saves-task.js";
+import { linkContextPrompt, runLinkContextTask } from "./link-context-task.js";
+import { collectionAuditPrompt, runCollectionAuditTask } from "./collection-audit-task.js";
 import { summarizeEvaluations } from "./summary.js";
 import { compareTaskAnswers } from "./comparison.js";
 import { runCollectionMerge, mergeTaskPrompt } from "./merge-task.js";
@@ -78,7 +80,7 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
     return;
   }
   // Graded entirely from API state: no answer judge, no pairwise comparison.
-  const judgeFreeTasks = new Set(["collection-merge", "shared-saves"]);
+  const judgeFreeTasks = new Set(["collection-merge", "shared-saves", "link-context", "collection-audit"]);
   const libraryCases = z.array(RecommendationCase).parse(JSON.parse(await readFile(new URL("../tasks/library.json", import.meta.url), "utf8")));
   for (const requested of selectedTasks) {
     if (requested !== "suite" && !judgeFreeTasks.has(requested) && !libraryCases.some((task) => task.name === requested)) throw new Error(`Unknown task: ${requested}`);
@@ -87,6 +89,8 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
   const registered = [...libraryCases.map((task) => ({ name: task.name, prompt: recommendationPrompt(task),
     run: (run: Parameters<typeof runEval>[0]) => runRecommendationTask(run, task) })),
     { name: "shared-saves", prompt: sharedSavesPrompt, run: runSharedSavesTask },
+    { name: "link-context", prompt: linkContextPrompt, run: runLinkContextTask },
+    { name: "collection-audit", prompt: collectionAuditPrompt, run: runCollectionAuditTask },
     { name: "collection-merge", prompt: mergeTaskPrompt, run: runCollectionMerge }];
   if (command === "tasks") {
     for (const task of registered) console.log(`${task.name}: ${task.prompt}`);

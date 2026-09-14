@@ -41,7 +41,7 @@ export function sharedFromLibraries(libraries: SharedSavesEvidence["libraries"])
     .sort((a, b) => a.url.localeCompare(b.url));
 }
 
-function occurrences(text: string, url: string) {
+export function urlOccurrences(text: string, url: string) {
   const positions: number[] = [];
   for (const variant of new Set([url, `${url}/`])) {
     let index = text.indexOf(variant);
@@ -63,13 +63,13 @@ function occurrences(text: string, url: string) {
 export function gradeSharedSaves(answer: string, evidence: SharedSavesEvidence) {
   const expected = sharedFromLibraries(evidence.libraries);
   const text = answer;
-  const anchors = expected.flatMap((entry) => occurrences(text, entry.url).map((at) => ({ at, entry })));
+  const anchors = expected.flatMap((entry) => urlOccurrences(text, entry.url).map((at) => ({ at, entry })));
   anchors.sort((a, b) => a.at - b.at);
-  const missing = expected.filter((entry) => !occurrences(text, entry.url).length).map((entry) => entry.url);
+  const missing = expected.filter((entry) => !urlOccurrences(text, entry.url).length).map((entry) => entry.url);
   if (missing.length) return { verdict: "fail", reason: `Answer omits ${missing.length} of ${expected.length} shared links`, missing };
   const sharedSet = new Set(expected.map((entry) => entry.url));
   const unshared = new Set(evidence.libraries.flatMap((library) => library.urls.map(canonicalUrl)).filter((url) => !sharedSet.has(url)));
-  const falsePositives = [...unshared].filter((url) => occurrences(text, url).length);
+  const falsePositives = [...unshared].filter((url) => urlOccurrences(text, url).length);
   if (falsePositives.length) return { verdict: "fail", reason: `Answer lists ${falsePositives.length} links saved by only one person`, falsePositives };
   const misattributed: { url: string; expected: string[]; found: string[] }[] = [];
   for (const [index, anchor] of anchors.entries()) {

@@ -103,3 +103,5 @@ prefer human review of representative decisions over treating a 4 as objective.
 [shared-saves](../evals/tasks/shared-saves.md) is a read-only aggregation task across six public libraries, graded deterministically from live API state with no judge. It is excluded from pairwise comparison like collection-merge.
 
 See [the 2026 framework survey](eval-frameworks-2026.md) for where the pass^k, infra-separation, grading-version, and smoke/report tier conventions come from.
+
+[link-context](../evals/tasks/link-context.md) and [collection-audit](../evals/tasks/collection-audit.md) are small read-only tasks graded from API state, added so the hardened set is not only aggregation-shaped. As of the same change the judge no longer decides pass/fail on reading-recommendation or library-filing: deterministic checks decide, and the judge's quality scores are reported as an advisory column.

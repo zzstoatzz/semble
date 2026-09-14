@@ -20,7 +20,8 @@ function median(values: number[]) {
   if (!sorted.length) return null;
   return sorted.length % 2 ? sorted[middle] ?? null : ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
 }
-const evaluation = z.object({ verdict: z.string(), reason: z.string(), task: z.object({ name: z.string() }), model: z.string().optional(), server: z.string().optional(), gradingVersion: z.number().optional(), executionStatus: z.string().optional() });
+const evaluation = z.object({ verdict: z.string(), reason: z.string(), task: z.object({ name: z.string() }), model: z.string().optional(), server: z.string().optional(), gradingVersion: z.number().optional(), executionStatus: z.string().optional(),
+  judge: z.object({ quality: z.object({ personalization: z.number(), decisionValue: z.number(), evidence: z.number() }).nullable().optional() }).optional() });
 
 function choose(n: number, k: number) {
   if (k < 0 || k > n) return 0;
@@ -62,6 +63,7 @@ export async function summarizeEvaluations(root: string) {
     rows.push({ run: entry.name, task: grade.task.name, gradingVersion: grade.gradingVersion ?? null, model: result?.model.name ?? grade.model,
       server: result?.server ?? grade.server, verdict: grade.verdict, reason: grade.reason, quality: judging?.verdict?.quality ?? null,
       infrastructure: isInfrastructureFailure(grade, result),
+      advisoryQuality: grade.judge?.quality ? (grade.judge.quality.personalization + grade.judge.quality.decisionValue + grade.judge.quality.evidence) / 3 : null,
       seconds: result ? result.elapsedMs / 1000 : null, toolErrors: result?.toolErrors ?? null,
       failedTools: result?.mcpCalls?.flatMap((call) => call.status === "error" && call.failedTool ? [call.failedTool] : []) ?? [],
       actorCost: result?.usage?.cost ?? null, judgeCost: judging?.usage?.cost ?? null });
@@ -82,11 +84,11 @@ export async function summarizeEvaluations(root: string) {
   }
   const costs = { actor: actorCost, judge: judgeCost, pairwise: pairwiseCost, reportedTotal: actorCost + judgeCost + pairwiseCost };
   await writeFile(join(root, "summary.json"), JSON.stringify({ rows, comparisons, costs }, null, 2));
-  const table = ["| Task | Model | MCP | Pass | Fail | Inconclusive | Infra | pass@1 | pass^3 | Median s | Tool errors |", "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"];
-  const groups = new Map<string, { pass: number; fail: number; inconclusive: number; infrastructure: number; seconds: number[]; toolErrors: number; failures: Map<string, number>; gradingVersions: Set<number | null> }>();
+  const table = ["| Task | Model | MCP | Pass | Fail | Inconclusive | Infra | pass@1 | pass^3 | Median s | Tool errors | Quality (advisory) |", "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"];
+  const groups = new Map<string, { pass: number; fail: number; inconclusive: number; infrastructure: number; seconds: number[]; toolErrors: number; failures: Map<string, number>; gradingVersions: Set<number | null>; quality: number[] }>();
   for (const row of rows) {
     const key = `${row.task} | ${row.model ?? "not run"} | ${row.server ?? "not run"}`;
-    const counts = groups.get(key) ?? { pass: 0, fail: 0, inconclusive: 0, infrastructure: 0, seconds: [], toolErrors: 0, failures: new Map<string, number>(), gradingVersions: new Set<number | null>() };
+    const counts = groups.get(key) ?? { pass: 0, fail: 0, inconclusive: 0, infrastructure: 0, seconds: [], toolErrors: 0, failures: new Map<string, number>(), gradingVersions: new Set<number | null>(), quality: [] };
     counts.gradingVersions.add(row.gradingVersion);
     if (row.infrastructure) counts.infrastructure++;
     else if (row.verdict === "pass") counts.pass++;
@@ -94,6 +96,7 @@ export async function summarizeEvaluations(root: string) {
     else counts.inconclusive++;
     if (row.seconds !== null && !row.infrastructure) counts.seconds.push(row.seconds);
     counts.toolErrors += row.toolErrors ?? 0;
+    if (row.advisoryQuality !== null) counts.quality.push(row.advisoryQuality);
     for (const tool of row.failedTools) counts.failures.set(tool, (counts.failures.get(tool) ?? 0) + 1);
     groups.set(key, counts);
   }
@@ -104,14 +107,14 @@ export async function summarizeEvaluations(root: string) {
     const seconds = median(counts.seconds);
     const passAt1 = trials ? (counts.pass / trials).toFixed(2) : "-";
     const passHat3 = passHatK(trials, counts.pass, 3);
-    table.push(`| ${key} | ${counts.pass} | ${counts.fail} | ${counts.inconclusive} | ${counts.infrastructure} | ${passAt1} | ${passHat3 === null ? "-" : passHat3.toFixed(2)} | ${seconds === null ? "-" : seconds.toFixed(0)} | ${counts.toolErrors} |`);
+    table.push(`| ${key} | ${counts.pass} | ${counts.fail} | ${counts.inconclusive} | ${counts.infrastructure} | ${passAt1} | ${passHat3 === null ? "-" : passHat3.toFixed(2)} | ${seconds === null ? "-" : seconds.toFixed(0)} | ${counts.toolErrors} | ${counts.quality.length ? (counts.quality.reduce((a, b) => a + b, 0) / counts.quality.length).toFixed(1) : "-"} |`);
   }
   const failures = ["| Task | Model | MCP | Failing method | Errors |", "|---|---|---|---|---:|"];
   for (const [key, counts] of groups) {
     for (const [tool, count] of [...counts.failures].sort((a, b) => b[1] - a[1])) failures.push(`| ${key} | ${tool} | ${count} |`);
   }
   const failureSection = failures.length > 2 ? `\n\nTool errors by method (the innermost method named in each error):\n\n${failures.join("\n")}` : "";
-  const legend = "\n\nInfra counts runs that never reached the model (preflight failure or provider error before any response); they are excluded from pass@1 and pass^3. pass^3 is the chance that three independent runs all pass. Inconclusive counts against pass@1.";
+  const legend = "\n\nInfra counts runs that never reached the model (preflight failure or provider error before any response); they are excluded from pass@1 and pass^3. pass^3 is the chance that three independent runs all pass. Inconclusive counts against pass@1. Quality is the judge's mean 0-4 score over personalization, decision value, and evidence, averaged over cells; it never affects verdicts.";
   const report = `${table.join("\n")}${legend}${failureSection}\n\nReported cost: $${costs.reportedTotal.toFixed(4)} (actors $${actorCost.toFixed(4)}, judges $${judgeCost.toFixed(4)}, pairwise $${pairwiseCost.toFixed(4)}). Missing individual costs remain null in summary.json.\n`;
   await writeFile(join(root, "summary.md"), report);
   console.log(report);

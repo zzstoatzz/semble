@@ -32,19 +32,19 @@ test("summary reports medians, tool errors and failures by method", async () => 
   const cells = [
     { name: "reading--luna--code-mode--1", verdict: "fail", elapsedMs: 41000, toolErrors: 2, calls: [{ status: "error", failedTool: "search_get_accounts" }, { status: "error", failedTool: "search_get_accounts" }, { status: "success", failedTool: null }] },
     { name: "reading--luna--code-mode--2", verdict: "pass", elapsedMs: 61000, toolErrors: 0, calls: [{ status: "success", failedTool: null }] },
-    { name: "reading--luna--official--1", verdict: "pass", elapsedMs: 30000, toolErrors: 0, calls: [] },
+    { name: "reading--luna--official--1", verdict: "pass", elapsedMs: 30000, toolErrors: 0, calls: [], judge: { quality: { personalization: 3, decisionValue: 3, evidence: 3 } } },
     { name: "reading--luna--official--2", verdict: "fail", elapsedMs: 1000, toolErrors: 0, calls: [], status: "error", responses: [] , executionStatus: "error" },
   ];
   for (const cell of cells) {
     const directory = join(root, cell.name);
     await mkdir(directory);
-    await writeFile(join(directory, "evaluation.json"), JSON.stringify({ verdict: cell.verdict, reason: "fixture", task: { name: "reading" }, gradingVersion: 2, executionStatus: cell.executionStatus ?? "completed" }));
+    await writeFile(join(directory, "evaluation.json"), JSON.stringify({ verdict: cell.verdict, reason: "fixture", task: { name: "reading" }, gradingVersion: 2, executionStatus: cell.executionStatus ?? "completed", judge: cell.judge }));
     await writeFile(join(directory, "result.json"), JSON.stringify({ server: cell.name.includes("official") ? "official" : "code-mode", model: { name: "luna" }, status: cell.status ?? "completed", elapsedMs: cell.elapsedMs, toolErrors: cell.toolErrors, mcpCalls: cell.calls, modelResponses: cell.responses ?? [{}], usage: { cost: 0.01 } }));
   }
   await summarizeEvaluations(root);
   const report = await readFile(join(root, "summary.md"), "utf8");
-  assert.match(report, /\| reading \| luna \| code-mode \| 1 \| 1 \| 0 \| 0 \| 0\.50 \| - \| 51 \| 2 \|/);
-  assert.match(report, /\| reading \| luna \| official \| 1 \| 0 \| 0 \| 1 \| 1\.00 \| - \| 30 \| 0 \|/);
+  assert.match(report, /\| reading \| luna \| code-mode \| 1 \| 1 \| 0 \| 0 \| 0\.50 \| - \| 51 \| 2 \| - \|/);
+  assert.match(report, /\| reading \| luna \| official \| 1 \| 0 \| 0 \| 1 \| 1\.00 \| - \| 30 \| 0 \| 3\.0 \|/);
   assert.match(report, /\| reading \| luna \| code-mode \| search_get_accounts \| 2 \|/);
   assert.match(report, /Reported cost: \$0\.0400/);
 });

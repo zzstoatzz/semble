@@ -1,6 +1,6 @@
 # semble pi evals
 
-a TypeScript harness that runs [Pi](https://github.com/earendil-works/pi) against the official Semble MCP and this repo's code-mode MCP. Pi owns the agent loop; the harness selects the model and server, supplies a prompt, and records the run. two tasks exercise personalized reading decisions and complete library organization against independent live API evidence.
+a TypeScript harness that runs [Pi](https://github.com/earendil-works/pi) against the official Semble MCP and this repo's code-mode MCP. Pi owns the agent loop; the harness selects the model and server, supplies a prompt, and records the run. tasks cover personalized reading decisions, library filing, cross-library aggregation, per-link context, and collection maintenance, each checked against independent live API evidence; `just evals tasks` lists them.
 
 ## use
 
