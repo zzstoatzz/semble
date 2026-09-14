@@ -99,3 +99,5 @@ Redirect aliases beyond metadata's canonical URL may need more verification.
 The same model family acts and judges in isolated sessions, so correlated errors
 remain possible. Review traces and score explanations before claiming progress;
 prefer human review of representative decisions over treating a 4 as objective.
+
+[shared-saves](../evals/tasks/shared-saves.md) is a read-only aggregation task across six public libraries, graded deterministically from live API state with no judge. It is excluded from pairwise comparison like collection-merge.

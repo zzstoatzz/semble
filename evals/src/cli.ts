@@ -7,6 +7,7 @@ import { connectMcp } from "./mcp.js";
 import { runEval } from "./runner.js";
 import { z } from "zod";
 import { RecommendationCase, recommendationPrompt, runRecommendationTask } from "./recommendation-task.js";
+import { runSharedSavesTask, sharedSavesPrompt } from "./shared-saves-task.js";
 import { summarizeEvaluations } from "./summary.js";
 import { compareTaskAnswers } from "./comparison.js";
 import { runCollectionMerge, mergeTaskPrompt } from "./merge-task.js";
@@ -76,13 +77,16 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
     }
     return;
   }
+  // Graded entirely from API state: no answer judge, no pairwise comparison.
+  const judgeFreeTasks = new Set(["collection-merge", "shared-saves"]);
   const libraryCases = z.array(RecommendationCase).parse(JSON.parse(await readFile(new URL("../tasks/library.json", import.meta.url), "utf8")));
   for (const requested of selectedTasks) {
-    if (requested !== "suite" && requested !== "collection-merge" && !libraryCases.some((task) => task.name === requested)) throw new Error(`Unknown task: ${requested}`);
+    if (requested !== "suite" && !judgeFreeTasks.has(requested) && !libraryCases.some((task) => task.name === requested)) throw new Error(`Unknown task: ${requested}`);
   }
   if (selectedTasks.length && values.prompt) throw new Error("Choose tasks or --prompt");
   const registered = [...libraryCases.map((task) => ({ name: task.name, prompt: recommendationPrompt(task),
     run: (run: Parameters<typeof runEval>[0]) => runRecommendationTask(run, task) })),
+    { name: "shared-saves", prompt: sharedSavesPrompt, run: runSharedSavesTask },
     { name: "collection-merge", prompt: mergeTaskPrompt, run: runCollectionMerge }];
   if (command === "tasks") {
     for (const task of registered) console.log(`${task.name}: ${task.prompt}`);
@@ -95,13 +99,13 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
   if (values["dry-run"]) {
     console.log(JSON.stringify({ tasks: tasks.map((task) => task.name), models: models.map((model) => model.name),
       servers: servers.map((server) => server.name), repetitions: matrix.repetitions, concurrency: matrix.concurrency,
-      runs: tasks.length * models.length * servers.length * matrix.repetitions, judge: tasks.every((task) => task.name === "collection-merge" || task.name === "prompt") ? null : matrix.judge }, null, 2));
+      runs: tasks.length * models.length * servers.length * matrix.repetitions, judge: tasks.every((task) => judgeFreeTasks.has(task.name) || task.name === "prompt") ? null : matrix.judge }, null, 2));
     return;
   }
   for (const server of servers) serverHeaders(server);
   const runtime = await ModelRuntime.create();
   const available = await runtime.getAvailable();
-  for (const model of tasks.every((task) => task.name === "collection-merge" || task.name === "prompt") ? models : [...models, matrix.judge]) {
+  for (const model of tasks.every((task) => judgeFreeTasks.has(task.name) || task.name === "prompt") ? models : [...models, matrix.judge]) {
     if (!available.some((candidate) => candidate.provider === model.provider && candidate.id === model.id)) {
       throw new Error(`${model.name}: ${model.provider}/${model.id} is unavailable. Run the models command and configure an exact authenticated model ID.`);
     }
@@ -141,7 +145,7 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
   }
   if (!values.prompt && servers.length === 2) {
     const comparisons: (() => Promise<void>)[] = [];
-    for (const task of tasks.filter((task) => task.name !== "collection-merge")) for (const model of models) for (let repetition = 1; repetition <= matrix.repetitions; repetition++) {
+    for (const task of tasks.filter((task) => !judgeFreeTasks.has(task.name))) for (const model of models) for (let repetition = 1; repetition <= matrix.repetitions; repetition++) {
       comparisons.push(() => compareTaskAnswers({ root: outputDir, matrix: { ...matrix, servers }, model, task,
         repetition, multipleTasks: tasks.length > 1, runtime }));
     }
