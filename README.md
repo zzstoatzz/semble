@@ -145,6 +145,8 @@ uv run scripts/roundtrip.py
 
 ## development
 
+[Pi eval harness](evals/) compares the official and code-mode MCP servers across models, using TypeScript and Pi's agent loop.
+
 ```bash
 just test   # pytest
 just fmt    # ruff format + check

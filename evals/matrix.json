@@ -1,0 +1,59 @@
+{
+  "models": [
+    {
+      "name": "haiku",
+      "provider": "anthropic",
+      "id": "claude-haiku-4-5",
+      "thinking": "off"
+    },
+    {
+      "name": "luna",
+      "provider": "openai-codex",
+      "id": "gpt-5.6-luna",
+      "thinking": "low"
+    },
+    {
+      "name": "terra",
+      "provider": "openai-codex",
+      "id": "gpt-5.6-terra",
+      "thinking": "low"
+    },
+    {
+      "name": "sonnet",
+      "provider": "anthropic",
+      "id": "claude-sonnet-5",
+      "thinking": "low"
+    }
+  ],
+  "servers": [
+    {
+      "name": "official",
+      "url": "https://api.semble.so/mcp",
+      "headersFromEnv": {
+        "X-API-Key": "SEMBLE_API_KEY"
+      }
+    },
+    {
+      "name": "code-mode",
+      "url": "https://semble.fastmcp.app/mcp",
+      "headersFromEnv": {
+        "x-semble-api-key": "SEMBLE_API_KEY"
+      }
+    }
+  ],
+  "repetitions": 3,
+  "concurrency": 2,
+  "timeoutSeconds": 120,
+  "maxTurns": 20,
+  "maxOutputTokens": 8192,
+  "judge": {
+    "name": "judge",
+    "provider": "openai-codex",
+    "id": "gpt-5.6-luna",
+    "thinking": "low"
+  },
+  "systemPrompt": "Complete the user's request using the available Semble tools. Base your answer on tool results. If you cannot complete the request, explain what prevented it.",
+  "defaultModels": [
+    "luna"
+  ]
+}
