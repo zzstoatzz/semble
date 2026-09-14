@@ -137,6 +137,8 @@ to invent synthetic data or assert anything about the film independently.
 
 ## 4. audit duplicate connections before cleanup
 
+**Stale as of 2026-09-14:** phi.zzstoatzz.io's connections were re-read live and now hold 8 records with no exact duplicate groups, so this task currently has no signal. Re-verify before implementing. The shared-saves task ([evals/tasks/shared-saves.md](../evals/tasks/shared-saves.md)) was added instead as the first deterministic aggregation task.
+
 Proposed prompt:
 
 > Is there anything redundant in phi.zzstoatzz.io's Semble library that
