@@ -43,6 +43,23 @@ _STATUS_ERRORS: dict[int, type[APIStatusError]] = {
 }
 
 
+def _field_errors(errors: object) -> str:
+    """flatten semble's zod-style `errors` payload into `field: reason` pairs."""
+    if not isinstance(errors, dict):
+        return ""
+    payload: dict[str, object] = {str(k): v for k, v in errors.items()}
+    parts: list[str] = []
+    field_errors = payload.get("fieldErrors")
+    if isinstance(field_errors, dict):
+        for field, reasons in field_errors.items():
+            if isinstance(reasons, list) and reasons:
+                parts.append(f"{field}: {'; '.join(str(r) for r in reasons)}")
+    form_errors = payload.get("formErrors")
+    if isinstance(form_errors, list) and form_errors:
+        parts.append("; ".join(str(r) for r in form_errors))
+    return ", ".join(parts)
+
+
 def status_error(response: httpx.Response) -> APIStatusError:
     message = ""
     try:
@@ -51,6 +68,9 @@ def status_error(response: httpx.Response) -> APIStatusError:
         data = None
     if isinstance(data, dict):
         message = data.get("message") or data.get("error") or ""
+        details = _field_errors(data.get("errors"))
+        if details:
+            message = f"{message or 'Validation error'}: {details}"
     if not message:
         message = response.text.strip() or f"HTTP {response.status_code}"
 

@@ -19,8 +19,9 @@ class Search(SyncResource):
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
         """natural-language search over urls across Semble by meaning (vector
-        search). `identifier` scopes results to one user's library; `url_type`
-        filters by kind of content.
+        search). `query` must be non-empty. `identifier` scopes results to one
+        user's library (to read a whole library use cards list_by_user instead);
+        `url_type` filters by kind of content.
         """
         params = drop_none(
             query=query,
@@ -96,8 +97,9 @@ class AsyncSearch(AsyncResource):
         sort_order: SortOrder | None = None,
     ) -> Page[URLView]:
         """natural-language search over urls across Semble by meaning (vector
-        search). `identifier` scopes results to one user's library; `url_type`
-        filters by kind of content.
+        search). `query` must be non-empty. `identifier` scopes results to one
+        user's library (to read a whole library use cards list_by_user instead);
+        `url_type` filters by kind of content.
         """
         params = drop_none(
             query=query,

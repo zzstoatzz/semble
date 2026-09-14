@@ -149,6 +149,17 @@ def test_error_mapping(
     assert excinfo.value.message == "nope"
 
 
+def test_validation_error_names_the_field(sync_client: SyncClientFactory) -> None:
+    """semble's 400 body carries zod field errors; the message must keep them."""
+    body = {
+        "message": "Validation error",
+        "errors": {"formErrors": [], "fieldErrors": {"searchQuery": ["Required"]}},
+    }
+    client, _ = sync_client(body, status_code=400)
+    with pytest.raises(APIStatusError, match="Validation error: searchQuery: Required"):
+        client.cards.search("")
+
+
 def test_error_message_from_error_key(sync_client: SyncClientFactory) -> None:
     client, _ = sync_client({"error": "bad thing"}, status_code=400)
     with pytest.raises(APIStatusError, match="bad thing"):

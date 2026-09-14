@@ -119,8 +119,8 @@ class Cards(SyncResource):
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
         """full-text search over URL card titles, descriptions and urls across all
-        of Semble. not scoped to one user; use list_by_user to read a single
-        library.
+        of Semble. `search_query` must be non-empty: there is no match-everything
+        query. not scoped to one user; use list_by_user to read a whole library.
         """
         params = drop_none(
             searchQuery=search_query,
@@ -311,8 +311,8 @@ class AsyncCards(AsyncResource):
         url_type: URLType | None = None,
     ) -> Page[URLCard]:
         """full-text search over URL card titles, descriptions and urls across all
-        of Semble. not scoped to one user; use list_by_user to read a single
-        library.
+        of Semble. `search_query` must be non-empty: there is no match-everything
+        query. not scoped to one user; use list_by_user to read a whole library.
         """
         params = drop_none(
             searchQuery=search_query,
