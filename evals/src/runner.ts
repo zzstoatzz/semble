@@ -28,6 +28,14 @@ interface McpCallMetric {
   status: "pending" | "success" | "error";
   textBytes: number | null;
   contentBlocks: number | null;
+  /** The innermost tool named in an error: the nested SDK method for execute, the tool itself otherwise. */
+  failedTool: string | null;
+}
+
+export function failedToolName(toolName: string, category: McpCallMetric["category"], text: string) {
+  if (category !== "execution") return toolName;
+  const names = [...text.matchAll(/Error calling tool '([^']+)'/g)].map((match) => match[1]);
+  return names.at(-1) ?? toolName;
 }
 
 export async function runEval(run: EvalRun) {
@@ -103,7 +111,7 @@ export async function runEval(run: EvalRun) {
           id: event.toolCallId, name: event.toolName,
           category: codeMode && ["search", "get_schema"].includes(event.toolName) ? "discovery"
             : codeMode && event.toolName === "execute" ? "execution" : "operation",
-          startedAt: new Date().toISOString(), elapsedMs: null, status: "pending", textBytes: null, contentBlocks: null,
+          startedAt: new Date().toISOString(), elapsedMs: null, status: "pending", textBytes: null, contentBlocks: null, failedTool: null,
         } });
       }
       if (event.type === "tool_execution_end") {
@@ -115,6 +123,10 @@ export async function runEval(run: EvalRun) {
           call.metric.contentBlocks = result.content.length;
           call.metric.textBytes = result.content.reduce((total, block) =>
             total + (block.type === "text" ? Buffer.byteLength(block.text, "utf8") : 0), 0);
+          if (event.isError) {
+            const text = result.content.map((block) => block.type === "text" ? block.text : "").join("\n");
+            call.metric.failedTool = failedToolName(call.metric.name, call.metric.category, text);
+          }
         }
       }
       if (event.type === "message_end" && event.message.role === "assistant") {

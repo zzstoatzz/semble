@@ -88,12 +88,13 @@ for (const mode of ["success", "empty-output", "tool-error", "turn-limit", "time
       }
       const status = await runEval({ matrix, model, server, prompt: "Look up test.", outputDir, runtime });
       assert.equal(status, mode === "turn-limit" ? "turn_limit" : mode === "timeout" ? "timeout" : mode === "provider-error" ? "error" : mode === "output-limit" ? "output_limit" : "completed");
-      const result = z.object({ turns: z.number(), toolErrors: z.number(), output: z.string(), mcpCalls: z.array(z.object({ elapsedMs: z.number().nullable(), status: z.string(), textBytes: z.number().nullable(), category: z.string() })), nestedApiCalls: z.null(), usage: z.object({ tokens: z.object({ total: z.number() }) }) }).parse(JSON.parse(await readFile(join(outputDir, "result.json"), "utf8")));
+      const result = z.object({ turns: z.number(), toolErrors: z.number(), output: z.string(), mcpCalls: z.array(z.object({ elapsedMs: z.number().nullable(), status: z.string(), textBytes: z.number().nullable(), category: z.string(), failedTool: z.string().nullable() })), nestedApiCalls: z.null(), usage: z.object({ tokens: z.object({ total: z.number() }) }) }).parse(JSON.parse(await readFile(join(outputDir, "result.json"), "utf8")));
       if (mode === "success" || mode === "tool-error" || mode === "empty-output") {
         assert.equal(calls, 1);
         assert.equal(result.mcpCalls.length, 1);
         assert.equal(result.mcpCalls[0]?.category, mode === "empty-output" ? "execution" : "operation");
         assert.equal(result.mcpCalls[0]?.status, mode === "tool-error" ? "error" : "success");
+        assert.equal(result.mcpCalls[0]?.failedTool, mode === "tool-error" ? "lookup" : null);
         assert((result.mcpCalls[0]?.elapsedMs ?? -1) >= 0);
         if (mode === "empty-output") assert.equal(result.mcpCalls[0]?.textBytes, 0);
         else assert((result.mcpCalls[0]?.textBytes ?? 0) > 0);
