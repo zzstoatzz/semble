@@ -42,3 +42,9 @@ the configured servers are live and expose writes as well as reads. prompts dete
 just evals-check        # TypeScript + real Pi/MCP loop against local fixtures; no inference spend
 just evals-judge-check  # configured judge against fixed grading controls; uses inference
 ```
+
+## metrics and tiers
+
+`summary.md` reports per task/model/server: pass, fail, inconclusive, infra, pass@1, pass^3, median seconds, and tool errors, plus a table of tool errors by failing method. infra counts runs that never reached the model (a checker preflight failure or a provider error before any response) and is excluded from the pass rates; pass^3 is tau-bench's pass^k, the probability that three independent runs all pass. the summary refuses to combine cells whose checkers have different `gradingVersion` values.
+
+`just evals-smoke <tasks...>` runs one repetition per cell for tuning the server or a task. numbers to report come from `just evals run` at the configured repetitions, on tasks that were not tuned against.

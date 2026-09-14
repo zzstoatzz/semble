@@ -22,6 +22,12 @@ evals-install:
 evals *args:
     node --env-file-if-exists=../.env --import tsx src/cli.ts "$@"
 
+# smoke tier: one repetition per cell, for tuning; never report numbers from it
+[working-directory: 'evals']
+[positional-arguments]
+evals-smoke *args:
+    node --env-file-if-exists=../.env --import tsx src/cli.ts run --repetitions 1 "$@"
+
 # type check and test the Pi harness without inference calls
 [working-directory: 'evals']
 evals-check:

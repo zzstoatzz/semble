@@ -101,3 +101,5 @@ remain possible. Review traces and score explanations before claiming progress;
 prefer human review of representative decisions over treating a 4 as objective.
 
 [shared-saves](../evals/tasks/shared-saves.md) is a read-only aggregation task across six public libraries, graded deterministically from live API state with no judge. It is excluded from pairwise comparison like collection-merge.
+
+See [the 2026 framework survey](eval-frameworks-2026.md) for where the pass^k, infra-separation, grading-version, and smoke/report tier conventions come from.
