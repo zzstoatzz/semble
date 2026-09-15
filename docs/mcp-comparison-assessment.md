@@ -46,3 +46,11 @@ Write tasks. collection-merge is blocked until Semble's app-password routing fix
 Code mode: cut the discovery turns. The catalog is small enough that a compact listing (name, one-line description, key params) could ship with the execute description or as a single browse call, so common tasks start at execute. That is the whole latency gap on small tasks. Second, keep pushing projected results to include the material an explanation needs.
 
 Official: it needs server-side aggregation for anything over a page or two, or a way to hand the model a filtered view instead of raw cards. Without that, the aggregation gap is permanent, and users will hit it on any library over a hundred cards.
+
+## Addendum, 2026-09-15
+
+**Grader correction.** The URL matcher used by shared-saves and collection-audit rejected a link followed by `)` or `,`, so markdown links failed. Three official collection-audit cells in the 20:44 batch were false fails; re-grading every stored cell with the corrected matcher changed no other verdict, so the official shared-saves omissions above are real.
+
+**Nested schema experiment.** With FastMCP PR #5111 (get_schema lists field names one level inside typed returns), stacked on #4970, and `URLCard.card_content` typed, code mode dropped one execute per cell on collection-audit (2 to 1) and reading-recommendation (3 to 2) with pass rates unchanged; link-context and filing already used one execute. Measured with the pinned server running locally, so seconds are not comparable to the hosted numbers; turns and execute counts are. Cost of the change on this catalog: about 29 tokens per tool in a get_schema call, zero on 24 of 51 tools.
+
+**A new code-mode weakness.** In two link-context cells the execute returned all ten saver handles in a compact list and the model dropped the same one while writing prose. The official server, with raw JSON in context, did not. Compact results reduce context but put more weight on faithful transcription; the official server's verbosity is a mild safeguard here.
