@@ -24,6 +24,11 @@ test("a negated type word or a distant summary does not count as a relabel", () 
   assert.equal(gradeLinkConnections(far, evidence).verdict, "pass");
 });
 
+test("a label written before the url on the previous line still counts", () => {
+  const labelFirst = `Connected:\n\n- **Critique** — OPPOSES (pushes back)\n  https://a.example/critique\n\n- **Follow-up** — LEADS_TO\n  https://b.example/followup\n\n- **Context** — RELATED\n  https://c.example/context/\n\nNo link was recorded as SUPPORTS.`;
+  assert.equal(gradeLinkConnections(labelFirst, evidence).verdict, "pass");
+});
+
 test("omitting a connected link fails", () => {
   assert.match(gradeLinkConnections(good.replace(/- https:\/\/c.example.*$/m, ""), evidence).reason, /omits 1 of 3/);
 });

@@ -30,7 +30,7 @@ const negation = /(?:\bno|\bnot|\bnothing|\bnone|\bnobody|n't|\bneither|\bnor|\b
 
 function typesMentioned(passage: string) {
   const text = passage.toLowerCase();
-  return (Object.keys(typeWords) as z.infer<typeof connectionType>[]).filter((type) => typeWords[type].some((word) => {
+  return (Object.keys(typeWords) as z.infer<typeof connectionType>[]).filter((type) => [type.toLowerCase(), type.toLowerCase().replace(/_/g, " "), ...typeWords[type]].some((word) => {
     let index = text.indexOf(word);
     while (index !== -1) {
       if (!negation.test(text.slice(Math.max(0, index - 40), index))) return true;
@@ -40,8 +40,21 @@ function typesMentioned(passage: string) {
   }));
 }
 
-/** A link's relationship is read from its own paragraph: up to the next connected link, the next blank line, or this many characters. */
+/** A link's relationship is read from its own list item or paragraph, at most this many characters either side of the url. */
 const passageLimit = 400;
+
+const itemMarker = /^[ \t]*(?:[-*•]|\d+[.)])[ \t]/;
+
+/** Offset where the list item or paragraph containing `at` begins. */
+function itemStart(text: string, at: number) {
+  const blank = text.lastIndexOf("\n\n", at);
+  let lineStart = text.lastIndexOf("\n", at - 1) + 1;
+  while (lineStart > 0) {
+    if (itemMarker.test(text.slice(lineStart, Math.min(text.length, lineStart + 12)))) break;
+    lineStart = text.lastIndexOf("\n", lineStart - 2) + 1;
+  }
+  return Math.max(lineStart, blank === -1 ? 0 : blank);
+}
 
 /**
  * Deterministic grade: every connected link appears, and the passage after each one
@@ -58,9 +71,12 @@ export function gradeLinkConnections(answer: string, evidence: LinkConnectionsEv
     const first = anchors.find((mention) => mention.url === edge.url);
     if (!first) continue;
     const next = anchors.find((mention) => mention.at > first.at && mention.url !== edge.url);
+    // The relationship lives in the link's own paragraph, which may put the label before or after the url.
+    const previous = anchors.filter((mention) => mention.at < first.at && mention.url !== edge.url).at(-1);
+    const start = Math.max(previous?.at ?? 0, itemStart(answer, first.at), first.at - passageLimit);
     const paragraphEnd = answer.indexOf("\n\n", first.at);
     const end = Math.min(next?.at ?? answer.length, paragraphEnd === -1 ? answer.length : paragraphEnd, first.at + passageLimit);
-    const passage = answer.slice(first.at, end);
+    const passage = answer.slice(start, end);
     const found = typesMentioned(passage);
     if (!found.includes(edge.type) || found.some((type) => type !== edge.type)) mislabeled.push({ url: edge.url, recorded: edge.type, found });
   }
