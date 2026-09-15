@@ -140,7 +140,7 @@ class URLCard(Model):
     id: str | None = None
     url: str | None = None
     uri: str | None = None
-    card_content: Any = None
+    card_content: URLMetadata | None = None
     library_count: int | None = None
     url_library_count: int | None = None
     url_in_library: bool | None = None

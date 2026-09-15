@@ -102,3 +102,17 @@ def test_sort_by_is_an_enum_where_the_api_defines_one() -> None:
         inspect.signature(Collections.list_by_user).parameters["sort_by"].annotation
     )
     assert "cardCount" in str(collections_sort)
+
+
+def test_url_card_content_is_typed_metadata() -> None:
+    card = URLCard.model_validate(
+        {
+            "id": "c1",
+            "url": "https://x.io",
+            "cardContent": {"title": "t", "siteName": "s", "author": 42},
+        }
+    )
+    assert card.card_content is not None
+    assert card.card_content.title == "t"
+    assert card.card_content.site_name == "s"
+    assert card.card_content.author == "42"
