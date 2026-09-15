@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { gradeCollectionAudit } from "./collection-audit-task.js";
+import { gradeLinkConnections, type LinkConnectionsEvidence } from "./link-connections-task.js";
 import { gradeSharedSaves, sharedFromLibraries, type SharedSavesEvidence } from "./shared-saves-task.js";
 
 /** Re-grade stored shared-saves and collection-audit cells with the current grader (coverage and attribution only). */
@@ -19,6 +20,11 @@ for (const entry of (await readdir(root, { withFileTypes: true })).filter((e) =>
     const evidence: SharedSavesEvidence = { libraries: e.expected.flatMap((x) => x.savers.map((handle) => ({ handle, urls: [x.url] }))), shared: e.expected };
     if (JSON.stringify(sharedFromLibraries(evidence.libraries)) !== JSON.stringify(e.expected)) throw new Error("evidence reconstruction mismatch");
     const g = gradeSharedSaves(output, evidence);
+    console.log(`${entry.name}: stored=${e.verdict} regraded=${g.verdict} | ${g.reason}`);
+  } else if (raw.task?.name === "link-connections") {
+    const e = z.object({ verdict: z.string(), expected: z.object({ edges: z.array(z.object({ other: z.string(), type: z.string(), direction: z.string(), note: z.string().nullable() })) }).nullable().optional() }).parse(raw);
+    if (!e.expected) continue;
+    const g = gradeLinkConnections(output, e.expected as LinkConnectionsEvidence);
     console.log(`${entry.name}: stored=${e.verdict} regraded=${g.verdict} | ${g.reason}`);
   } else if (raw.task?.name === "collection-audit") {
     const e = audit.parse(raw);

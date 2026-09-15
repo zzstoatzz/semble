@@ -17,6 +17,13 @@ test("a faithful answer passes, with slash and stem tolerance", () => {
   assert.equal(gradeLinkConnections(good.replace("recorded as leads to", "which led to"), evidence).verdict, "pass");
 });
 
+test("a negated type word or a distant summary does not count as a relabel", () => {
+  const summary = `${good}\n\nNothing here opposes it directly; the critique is the only pushback and the rest either build on or relate to it.`;
+  assert.equal(gradeLinkConnections(summary, evidence).verdict, "pass");
+  const far = `${good}\n\n${"filler ".repeat(80)}This piece supports a broader thesis.`;
+  assert.equal(gradeLinkConnections(far, evidence).verdict, "pass");
+});
+
 test("omitting a connected link fails", () => {
   assert.match(gradeLinkConnections(good.replace(/- https:\/\/c.example.*$/m, ""), evidence).reason, /omits 1 of 3/);
 });

@@ -25,10 +25,23 @@ const typeWords: Record<z.infer<typeof connectionType>, string[]> = {
   SUPPLEMENT: ["supplement"], EXPLAINER: ["explain"], REFERENCES: ["reference"], SAME_AS: ["same as", "same page", "duplicate"],
 };
 
+/** A type word counts unless it is negated just before ("nothing opposes", "no support", "doesn't push back"). */
+const negation = /(?:\bno|\bnot|\bnothing|\bnone|\bnobody|n't|\bneither|\bnor|\brather than)\W{1,3}(?:\w+\W{1,3}){0,2}$/;
+
 function typesMentioned(passage: string) {
   const text = passage.toLowerCase();
-  return (Object.keys(typeWords) as z.infer<typeof connectionType>[]).filter((type) => typeWords[type].some((word) => text.includes(word)));
+  return (Object.keys(typeWords) as z.infer<typeof connectionType>[]).filter((type) => typeWords[type].some((word) => {
+    let index = text.indexOf(word);
+    while (index !== -1) {
+      if (!negation.test(text.slice(Math.max(0, index - 40), index))) return true;
+      index = text.indexOf(word, index + 1);
+    }
+    return false;
+  }));
 }
+
+/** A link's relationship is read from its own paragraph: up to the next connected link, the next blank line, or this many characters. */
+const passageLimit = 400;
 
 /**
  * Deterministic grade: every connected link appears, and the passage after each one
@@ -45,7 +58,9 @@ export function gradeLinkConnections(answer: string, evidence: LinkConnectionsEv
     const first = anchors.find((mention) => mention.url === edge.url);
     if (!first) continue;
     const next = anchors.find((mention) => mention.at > first.at && mention.url !== edge.url);
-    const passage = answer.slice(first.at, next?.at ?? answer.length);
+    const paragraphEnd = answer.indexOf("\n\n", first.at);
+    const end = Math.min(next?.at ?? answer.length, paragraphEnd === -1 ? answer.length : paragraphEnd, first.at + passageLimit);
+    const passage = answer.slice(first.at, end);
     const found = typesMentioned(passage);
     if (!found.includes(edge.type) || found.some((type) => type !== edge.type)) mislabeled.push({ url: edge.url, recorded: edge.type, found });
   }
