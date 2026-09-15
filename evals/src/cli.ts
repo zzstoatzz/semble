@@ -10,6 +10,7 @@ import { RecommendationCase, recommendationPrompt, runRecommendationTask } from 
 import { runSharedSavesTask, sharedSavesPrompt } from "./shared-saves-task.js";
 import { linkContextPrompt, runLinkContextTask } from "./link-context-task.js";
 import { collectionAuditPrompt, runCollectionAuditTask } from "./collection-audit-task.js";
+import { linkConnectionsPrompt, runLinkConnectionsTask } from "./link-connections-task.js";
 import { summarizeEvaluations } from "./summary.js";
 import { compareTaskAnswers } from "./comparison.js";
 import { runCollectionMerge, mergeTaskPrompt } from "./merge-task.js";
@@ -80,7 +81,7 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
     return;
   }
   // Graded entirely from API state: no answer judge, no pairwise comparison.
-  const judgeFreeTasks = new Set(["collection-merge", "shared-saves", "link-context", "collection-audit"]);
+  const judgeFreeTasks = new Set(["collection-merge", "shared-saves", "link-context", "collection-audit", "link-connections"]);
   const libraryCases = z.array(RecommendationCase).parse(JSON.parse(await readFile(new URL("../tasks/library.json", import.meta.url), "utf8")));
   for (const requested of selectedTasks) {
     if (requested !== "suite" && !judgeFreeTasks.has(requested) && !libraryCases.some((task) => task.name === requested)) throw new Error(`Unknown task: ${requested}`);
@@ -91,6 +92,7 @@ Each cell gets a fresh Pi session using existing provider authentication.`);
     { name: "shared-saves", prompt: sharedSavesPrompt, run: runSharedSavesTask },
     { name: "link-context", prompt: linkContextPrompt, run: runLinkContextTask },
     { name: "collection-audit", prompt: collectionAuditPrompt, run: runCollectionAuditTask },
+    { name: "link-connections", prompt: linkConnectionsPrompt, run: runLinkConnectionsTask },
     { name: "collection-merge", prompt: mergeTaskPrompt, run: runCollectionMerge }];
   if (command === "tasks") {
     for (const task of registered) console.log(`${task.name}: ${task.prompt}`);
