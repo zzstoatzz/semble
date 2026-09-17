@@ -37,9 +37,13 @@ Advisory judge quality (0-4, never affects verdicts): filing official 3.5 vs cod
 
 **Fewer ways to fail inside the loop.** Official's failure modes are context overflow and page-one laziness. Code mode adds sandbox errors: Monty's Python subset (no `__import__`, no generators), guessed field names, validation errors from guessed arguments. Today those were rare and recoverable, and every one is visible in the failures-by-method table, but they are a class official does not have.
 
+## Write task, measured 2026-09-17
+
+Semble shipped the app-password routing fix (cosmik-network/semble#930 via #936), and collection-merge ran end to end on the hosted API: four repetitions per server across two batches, 8 of 8 passes, zero cleanup errors, the account restored each time. Both servers produce the exact union and preserve originals. The difference is call volume: code mode merges in 4 or 5 MCP calls (one execute adds every card), official in 12 (one add-card call per card), at similar wall time (median 48 s vs 36 s). Neither server showed a write-safety problem at this scale; a larger merge would widen the call gap on the official side.
+
 ## Not measured
 
-Write tasks. collection-merge is blocked until Semble's app-password routing fix ships upstream, so nothing here says which server is safer or more reliable at mutating a library. Multi-model behaviour: everything above is Luna. Haiku, Sonnet, and Terra ran on 09-12 on retired tasks only.
+Multi-model behaviour: everything above is Luna. Haiku, Sonnet, and Terra ran on 09-12 on retired tasks only.
 
 ## What would move each server
 
