@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx2 as httpx
 import pytest
-from fastmcp import Client
+from fastmcp import Client, FastMCP
 
 from semble import Semble
 from semble.mcp import build_server
@@ -268,3 +268,104 @@ async def test_schema_exposes_sort_by_values() -> None:
             },
         )
         assert "libraryCount" in result.content[0].text
+
+
+# --- jev mode ---------------------------------------------------------------
+
+
+class _FakeJev:
+    """answers every choice with equal probabilities and every noul with yes."""
+
+    def __init__(self) -> None:
+        self.requests = 0
+
+    async def system_one(self, state: Any, questions: Any) -> Any:
+        self.requests += 1
+        answers: dict[str, Any] = {}
+        for qid, question in questions.items():
+            if question["type"] == "choice":
+                names = list(question["criteria"])
+                share = 1 / len(names)
+                answers[qid] = type(
+                    "A",
+                    (),
+                    {"choice": names[0], "probabilities": dict.fromkeys(names, share)},
+                )()
+            else:
+                answers[qid] = type("A", (), {"noul": 0.9})()
+        return type("R", (), {"answers": answers})()
+
+
+def _jev_server(monkeypatch: pytest.MonkeyPatch, **limits: float) -> FastMCP:
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-typesafe-key")
+    for name, value in limits.items():
+        monkeypatch.setattr(f"semble.mcp.{name}", value)
+    return build_server(mock_semble({}), mode="jev")
+
+
+async def test_jev_mode_exposes_search_and_call_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async with Client(_jev_server(monkeypatch)) as session:
+        names = {tool.name for tool in await session.list_tools()}
+    assert names == {"search_tools", "call_tool"}
+
+
+def test_jev_mode_is_selected_by_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-typesafe-key")
+    monkeypatch.setenv("SEMBLE_MCP_MODE", "jev")
+    server = build_server(mock_semble({}))
+    assert {t.name for t in asyncio.run(server.list_tools())} == {
+        "search_tools",
+        "call_tool",
+    }
+    monkeypatch.setenv("SEMBLE_MCP_MODE", "nope")
+    with pytest.raises(SystemExit):
+        build_server(mock_semble({}))
+
+
+def test_jev_mode_without_a_typesafe_key_fails_at_startup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    with pytest.raises(ValueError, match="TYPESAFE_API_KEY"):
+        build_server(mock_semble({}), mode="jev")
+
+
+async def test_jev_mode_rate_limits_a_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    server = _jev_server(
+        monkeypatch,
+        JEV_CLIENT_REQUESTS_PER_SECOND=0.001,
+        JEV_CLIENT_BURST=3,
+        JEV_GLOBAL_REQUESTS_PER_SECOND=1000,
+        JEV_GLOBAL_BURST=1000,
+    )
+    async with Client(server) as session:
+        for _ in range(2):
+            await session.list_tools()
+        with pytest.raises(Exception, match="Rate limit exceeded"):
+            for _ in range(10):
+                await session.list_tools()
+
+
+async def test_jev_mode_rate_limits_the_whole_server(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    server = _jev_server(
+        monkeypatch,
+        JEV_CLIENT_REQUESTS_PER_SECOND=1000,
+        JEV_CLIENT_BURST=1000,
+        JEV_GLOBAL_REQUESTS_PER_SECOND=0.001,
+        JEV_GLOBAL_BURST=3,
+    )
+    async with Client(server) as session:
+        with pytest.raises(Exception, match="Global rate limit exceeded"):
+            for _ in range(10):
+                await session.list_tools()
+
+
+def test_rate_limit_buckets_are_keyed_by_api_key_hash() -> None:
+    from semble.mcp import _rate_limit_client_id
+
+    # outside a request there are no headers: everyone shares the anonymous bucket
+    assert _rate_limit_client_id(None) == "anonymous"

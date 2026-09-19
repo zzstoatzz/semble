@@ -32,8 +32,10 @@ cli = [
     "cyclopts>=4.17.0",
 ]
 mcp = [
-    "fastmcp[code-mode]==4.0.3",
-    "typesafe-sdk>=0.5.7",
+    # jev mode needs the `jev` extra from PrefectHQ/fastmcp#5170; until a
+    # release carries it, [tool.uv.sources] and requirements.horizon.txt pin
+    # that commit. drop both and set a version floor once it ships.
+    "fastmcp[code-mode,jev]>=4.0.3",
 ]
 
 [project.scripts]
@@ -49,7 +51,7 @@ dev = [
     "prek>=0.2.0",
     "ty>=0.0.1a25",
     "cyclopts>=4.17.0",
-    "fastmcp[code-mode]==4.0.3",
+    "fastmcp[code-mode,jev]>=4.0.3",
 ]
 
 [build-system]
@@ -111,3 +113,9 @@ exclude = [
 
 [tool.ty.environment]
 python-version = "3.12"
+
+[tool.uv.sources]
+fastmcp = { git = "https://github.com/PrefectHQ/fastmcp", rev = "77f6b94f05e4361cde54bd375efa12a1558578d1" }
+fastmcp-slim = { git = "https://github.com/PrefectHQ/fastmcp", rev = "77f6b94f05e4361cde54bd375efa12a1558578d1", subdirectory = "fastmcp_slim" }
+fastmcp-remote = { git = "https://github.com/PrefectHQ/fastmcp", rev = "77f6b94f05e4361cde54bd375efa12a1558578d1", subdirectory = "fastmcp_remote" }
+fastmcp-tasks = { git = "https://github.com/PrefectHQ/fastmcp", rev = "77f6b94f05e4361cde54bd375efa12a1558578d1", subdirectory = "fastmcp_tasks" }

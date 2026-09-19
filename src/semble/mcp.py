@@ -14,6 +14,7 @@ which reads `SEMBLE_API_KEY` from the environment or serves public reads.
 requires the `mcp` extra: `uv add 'semble-api[mcp]'`.
 """
 
+import hashlib
 import inspect
 import json
 import os
@@ -32,6 +33,7 @@ try:
         MontySandboxProvider,
     )
     from fastmcp.server.dependencies import get_http_headers
+    from fastmcp.server.middleware import Middleware
     from fastmcp.server.transforms.catalog import CatalogTransform
     from fastmcp.tools import Tool
     from pydantic_monty import ResourceLimits
@@ -214,14 +216,56 @@ MODES: tuple[Mode, ...] = ("code", "jev")
 
 ``code`` hides it behind CodeMode's search / get_schema / execute. ``jev``
 hides it behind a search_tools / call_tool pair ranked by TypeSafe's Jev
-(see ``_jev_search``); the model calls one sdk method per turn instead of
+(fastmcp's experimental ``JevSearchTransform``); the model calls one sdk method per turn instead of
 composing python. selected by ``SEMBLE_MCP_MODE`` when not passed.
 """
 
 
+JEV_CLIENT_REQUESTS_PER_SECOND = 2.0
+JEV_CLIENT_BURST = 10
+JEV_GLOBAL_REQUESTS_PER_SECOND = 5.0
+JEV_GLOBAL_BURST = 10
+"""rate limits for jev mode.
+
+every search_tools call is two or three TypeSafe requests billed to the
+server's key, and a keyless client can call it. per-client buckets are keyed
+by the caller's semble api key when present, otherwise shared by everyone
+anonymous; the global bucket keeps the whole server under TypeSafe's 1,200
+requests per minute (5 searches/s * 3 requests = 900/min).
+"""
+
+
+def _rate_limit_client_id(_context: object) -> str:
+    key = get_http_headers().get(API_KEY_HEADER, "")
+    return hashlib.sha256(key.encode()).hexdigest()[:16] if key else "anonymous"
+
+
+def _jev_middleware() -> list[Middleware]:
+    from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
+
+    return [
+        RateLimitingMiddleware(
+            max_requests_per_second=JEV_GLOBAL_REQUESTS_PER_SECOND,
+            burst_capacity=JEV_GLOBAL_BURST,
+            global_limit=True,
+        ),
+        RateLimitingMiddleware(
+            max_requests_per_second=JEV_CLIENT_REQUESTS_PER_SECOND,
+            burst_capacity=JEV_CLIENT_BURST,
+            get_client_id=_rate_limit_client_id,
+        ),
+    ]
+
+
 def _transform(mode: Mode) -> CatalogTransform:
     if mode == "jev":
-        from semble._jev_search import JevSearchTransform
+        try:
+            from fastmcp.experimental.transforms.jev_search import JevSearchTransform
+        except ImportError as exc:
+            raise SystemExit(
+                "jev mode needs fastmcp with the `jev` extra (PrefectHQ/fastmcp#5170); "
+                f"install `semble-api[mcp]` from a checkout that pins it. import failed: {exc}"
+            ) from exc
 
         return JevSearchTransform(max_results=5)
     return CodeMode(
@@ -239,6 +283,9 @@ def build_server(client: Semble | None = None, mode: Mode | None = None) -> Fast
         if mode is None:
             raise SystemExit(f"SEMBLE_MCP_MODE must be code or jev, not {raw!r}")
     mcp = FastMCP("semble", transforms=[_transform(mode)])
+    if mode == "jev":
+        for middleware in _jev_middleware():
+            mcp.add_middleware(middleware)
     resources = {
         name: attr
         for name, attr in vars(client).items()

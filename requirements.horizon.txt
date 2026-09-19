@@ -2,8 +2,16 @@
 #
 # horizon's builder preinstalls a pinned fastmcp and installs the project
 # via `uv pip install ./` when pointed at pyproject.toml — which never
-# installs extras, so the code-mode server's fastmcp>=3.4.2 + monty deps
-# go missing and `fastmcp inspect` fails at build time. selecting this
-# file instead installs the project WITH the mcp extra, upgrading fastmcp
-# in the image to what semble.mcp actually needs.
+# installs extras, so the code-mode server's monty deps go missing and
+# `fastmcp inspect` fails at build time. selecting this file instead
+# installs the project WITH the mcp extra.
+#
+# `uv pip install -r` does not read [tool.uv.sources], so the fastmcp
+# workspace is pinned here too, to the same commit: PrefectHQ/fastmcp#5170,
+# which carries the `jev` extra and JevSearchTransform. drop these four
+# lines once a fastmcp release includes them.
+fastmcp[code-mode,jev] @ git+https://github.com/PrefectHQ/fastmcp@77f6b94f05e4361cde54bd375efa12a1558578d1
+fastmcp-slim @ git+https://github.com/PrefectHQ/fastmcp@77f6b94f05e4361cde54bd375efa12a1558578d1#subdirectory=fastmcp_slim
+fastmcp-remote @ git+https://github.com/PrefectHQ/fastmcp@77f6b94f05e4361cde54bd375efa12a1558578d1#subdirectory=fastmcp_remote
+fastmcp-tasks @ git+https://github.com/PrefectHQ/fastmcp@77f6b94f05e4361cde54bd375efa12a1558578d1#subdirectory=fastmcp_tasks
 .[mcp]
