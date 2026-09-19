@@ -58,3 +58,21 @@ Official: it needs server-side aggregation for anything over a page or two, or a
 **Nested schema experiment.** With FastMCP PR #5111 (get_schema lists field names one level inside typed returns), stacked on #4970, and `URLCard.card_content` typed, code mode dropped one execute per cell on collection-audit (2 to 1) and reading-recommendation (3 to 2) with pass rates unchanged; link-context and filing already used one execute. Measured with the pinned server running locally, so seconds are not comparable to the hosted numbers; turns and execute counts are. Cost of the change on this catalog: about 29 tokens per tool in a get_schema call, zero on 24 of 51 tools.
 
 **A new code-mode weakness.** In two link-context cells the execute returned all ten saver handles in a compact list and the model dropped the same one while writing prose. The official server, with raw JSON in context, did not. Compact results reduce context but put more weight on faithful transcription; the official server's verbosity is a mild safeguard here.
+
+## A third server: Jev-ranked search, 2026-09-19
+
+`build_server(mode="jev")` exposes the same 51 SDK methods behind FastMCP's `search_tools` / `call_tool` pair, ranked by TypeSafe's Jev (vendored from PrefectHQ/fastmcp#5170). It is the official server's shape, one tool call per turn, with a learned ranker over our catalog instead of hand-curated tools. Three repetitions per task, Luna, local servers, results in `evals/results/2026-09-19T03-48-55.089Z-3023` and `…T04-03-40.507Z-7437` (merge):
+
+| Task | Official | Code mode | Jev |
+|---|---|---|---|
+| shared-saves | 0/3 | 3/3 | 0/3 |
+| collection-audit | 3/3 | 3/3 | 3/3 |
+| link-context | 3/3 | 2/3 | 3/3 |
+| link-connections | 1/3 | 3/3 | 3/3 |
+| library-filing | 3/3 | 3/3 | 3/3 |
+| reading-recommendation | 2/3 | 3/3 | 3/3 |
+| collection-merge | 4/4 (earlier) | 4/4 (earlier) | 2/2 graded |
+
+Median seconds on the small tasks: official 10 to 25, Jev 14 to 29, code mode 19 to 46. Jev matched or beat official on every read task and inherits official's aggregation failure, because it still returns raw pages into context. Its third merge cell never reached the model: a seed save timed out client-side after succeeding server-side, cleanup found the un-journaled card, and the account was restored by hand. Cleanup now reconciles against the before snapshot for exactly that case.
+
+What this says about the two designs: the search quality gap between code mode's grep and a curated tool set is closable by a better ranker, and doing so recovers most of official's latency advantage. The aggregation gap is not about search at all; only executing code server-side closes it. The interesting server is therefore the one that has both, which is code mode with Jev ranking its discovery step, not a third mode.

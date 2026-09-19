@@ -67,6 +67,7 @@ async function executeCollectionMerge(run: EvalRun) {
   const destinationName = `${prefix}-merged`;
   const created = new Set<string>();
   const addedCards = new Set<string>();
+  const seedUrls: string[] = [];
   let accountBefore: MergeCard[] | undefined;
   const requests: { endpoint: string; method: string; status: number; at: string }[] = [];
   let executionStatus = "not_run";
@@ -139,6 +140,7 @@ async function executeCollectionMerge(run: EvalRun) {
       }));
       const urls = [...new Set(source.cards.map((card) => card.url))].filter((url) => !accountBefore?.some((card) => card.url === url)).slice(0, needed);
       if (urls.length !== needed) throw new Error("Public seed library is too small; update the seed identifier");
+      seedUrls.push(...urls);
       await writeFile(join(run.outputDir, "seed.json"), JSON.stringify({ identifier: "zzstoatzz.io", urls, addedCards: [] }, null, 2));
       for (const url of urls) {
         const added = z.object({ urlCardId: z.string() }).parse(await api("card.addUrl", {}, { url }));
@@ -198,14 +200,25 @@ async function executeCollectionMerge(run: EvalRun) {
       try { await api("card.removeFromLibrary", {}, { cardId }); }
       catch (error) { cleanupErrors.push(`${cardId}: ${error instanceof Error ? error.message : String(error)}`); }
     }
+    const orphans: string[] = [];
     if (accountBefore) {
       try {
+        // A seed save whose response timed out client-side can still have succeeded, leaving a card
+        // the journal never saw. Anything new since the before snapshot at a seed url is ours to remove.
+        const originals = new Set(accountBefore.map((card) => card.id));
+        for (const card of await library()) {
+          if (!originals.has(card.id) && !addedCards.has(card.id) && seedUrls.includes(card.url)) orphans.push(card.id);
+        }
+        for (const cardId of orphans) {
+          try { await api("card.removeFromLibrary", {}, { cardId }); }
+          catch (error) { cleanupErrors.push(`${cardId}: ${error instanceof Error ? error.message : String(error)}`); }
+        }
         const restored = await library();
         await writeFile(join(run.outputDir, "account-after.json"), JSON.stringify(restored, null, 2));
         if (librarySignature(accountBefore, new Set()) !== librarySignature(restored, new Set())) cleanupErrors.push("Account library was not restored exactly");
       } catch (error) { cleanupErrors.push(error instanceof Error ? error.message : String(error)); }
     }
-    await writeFile(join(run.outputDir, "cleanup.json"), JSON.stringify({ created: [...created], addedCards: [...addedCards], errors: cleanupErrors }, null, 2));
+    await writeFile(join(run.outputDir, "cleanup.json"), JSON.stringify({ created: [...created], addedCards: [...addedCards], orphansRemoved: orphans, errors: cleanupErrors }, null, 2));
     await writeFile(join(run.outputDir, "checker-requests.json"), JSON.stringify(requests, null, 2));
     if (cleanupErrors.length && grade.verdict === "pass") grade = { verdict: "inconclusive", reason: "Task passed but fixture cleanup failed; inspect cleanup.json" };
     await writeFile(join(run.outputDir, "evaluation.json"), JSON.stringify({ gradingVersion: 1, task: { name: "collection-merge" },
