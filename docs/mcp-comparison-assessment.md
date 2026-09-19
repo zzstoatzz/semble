@@ -76,3 +76,19 @@ Official: it needs server-side aggregation for anything over a page or two, or a
 Median seconds on the small tasks: official 10 to 25, Jev 14 to 29, code mode 19 to 46. Jev matched or beat official on every read task and inherits official's aggregation failure, because it still returns raw pages into context. Its third merge cell never reached the model: a seed save timed out client-side after succeeding server-side, cleanup found the un-journaled card, and the account was restored by hand. Cleanup now reconciles against the before snapshot for exactly that case.
 
 What this says about the two designs: the search quality gap between code mode's grep and a curated tool set is closable by a better ranker, and doing so recovers most of official's latency advantage. The aggregation gap is not about search at all; only executing code server-side closes it. The interesting server is therefore the one that has both, which is code mode with Jev ranking its discovery step, not a third mode.
+
+## After the cutover: hosted jev, 2026-09-19
+
+The hosted server now runs jev mode by default (`just mcp-mode code` reverts). Same seven tasks, three repetitions, official and jev hosted, code mode from a local server on the same commit. Results `evals/results/2026-09-19T06-27-16.748Z-43338` and `…T06-41-00.733Z-48199` (merge), cost $2.13, no rate-limit hits at concurrency two.
+
+| Task | Official | Jev (hosted) | Code mode (local) |
+|---|---|---|---|
+| shared-saves | 0/3 | 0/3 | 3/3 |
+| collection-merge | 3/3 | 2/3 | 3/3 |
+| reading-recommendation | 3/3 | 3/3 | 2/3 |
+| library-filing | 3/3 | 2/3 | 3/3 |
+| link-context, collection-audit, link-connections | 3/3 each | 3/3 each | 3/3 each |
+
+Shared-saves is the same mechanism on both one-call servers: jev asked for `limit: 1000`, the API silently capped each page at 100, the model treated page one as the whole library and listed 4 of 19 links over 800k input tokens; official paged correctly and overflowed the context window. Code mode returned 19 correct rows from 11.7k tokens. On merge, jev's one miss built a destination that was not the exact union; code mode's two execute errors (a Monty async misuse and an indentation slip) were both recovered within the run. Cleanup was clean on all nine merge cells and the account was restored.
+
+Standing conclusion unchanged: jev fixes discovery and matches official's speed on small tasks; only code-mode-style execution survives aggregation. The API's silent limit clamp is worth reporting upstream, since an error or an echoed limit would have told the model to page.
