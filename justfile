@@ -38,3 +38,7 @@ evals-check:
 [working-directory: 'evals']
 evals-judge-check:
     SEMBLE_LIVE_JUDGE_TEST=1 node --env-file-if-exists=../.env --import tsx --test src/judge.test.ts
+
+# switch the hosted mcp between code and jev mode (needs HORIZON_API_KEY); `status` reports the live mode
+mcp-mode mode:
+    uv run scripts/horizon_mode.py {{mode}}
