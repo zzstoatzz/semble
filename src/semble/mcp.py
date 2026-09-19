@@ -16,8 +16,10 @@ requires the `mcp` extra: `uv add 'semble-api[mcp]'`.
 
 import inspect
 import json
+import os
 from collections.abc import Callable
 from functools import wraps
+from typing import Literal
 
 import httpx2 as httpx
 
@@ -30,6 +32,7 @@ try:
         MontySandboxProvider,
     )
     from fastmcp.server.dependencies import get_http_headers
+    from fastmcp.server.transforms.catalog import CatalogTransform
     from fastmcp.tools import Tool
     from pydantic_monty import ResourceLimits
 except ImportError as exc:  # pragma: no cover
@@ -205,18 +208,37 @@ def _per_request[**P, R](
     return tool
 
 
-def build_server(client: Semble | None = None) -> FastMCP:
-    client = client or Semble(timeout=NESTED_CALL_TIMEOUT)
-    mcp = FastMCP(
-        "semble",
-        transforms=[
-            CodeMode(
-                discovery_tools=[executable_search, GetSchemas()],
-                execute_description=EXECUTE_DESCRIPTION,
-                sandbox_provider=MontySandboxProvider(limits=EXECUTE_LIMITS),
-            )
-        ],
+Mode = Literal["code", "jev"]
+MODES: tuple[Mode, ...] = ("code", "jev")
+"""how the sdk catalog is exposed.
+
+``code`` hides it behind CodeMode's search / get_schema / execute. ``jev``
+hides it behind a search_tools / call_tool pair ranked by TypeSafe's Jev
+(see ``_jev_search``); the model calls one sdk method per turn instead of
+composing python. selected by ``SEMBLE_MCP_MODE`` when not passed.
+"""
+
+
+def _transform(mode: Mode) -> CatalogTransform:
+    if mode == "jev":
+        from semble._jev_search import JevSearchTransform
+
+        return JevSearchTransform(max_results=5)
+    return CodeMode(
+        discovery_tools=[executable_search, GetSchemas()],
+        execute_description=EXECUTE_DESCRIPTION,
+        sandbox_provider=MontySandboxProvider(limits=EXECUTE_LIMITS),
     )
+
+
+def build_server(client: Semble | None = None, mode: Mode | None = None) -> FastMCP:
+    client = client or Semble(timeout=NESTED_CALL_TIMEOUT)
+    if mode is None:
+        raw = os.environ.get("SEMBLE_MCP_MODE", "code")
+        mode = next((m for m in MODES if m == raw), None)
+        if mode is None:
+            raise SystemExit(f"SEMBLE_MCP_MODE must be code or jev, not {raw!r}")
+    mcp = FastMCP("semble", transforms=[_transform(mode)])
     resources = {
         name: attr
         for name, attr in vars(client).items()

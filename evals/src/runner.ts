@@ -105,12 +105,17 @@ export async function runEval(run: EvalRun) {
       }
       if (event.type === "tool_execution_end" && event.isError) toolErrors++;
       if (event.type === "tool_execution_start") {
-        const codeMode = connection?.inventory.some((tool) => tool.name === "execute") &&
-          connection.inventory.some((tool) => tool.name === "get_schema");
+        const has = (name: string) => connection?.inventory.some((tool) => tool.name === name) ?? false;
+        const codeMode = has("execute") && has("get_schema");
+        // a search transform (fastmcp's regex/bm25/jev) exposes the same two-step
+        // shape as code mode: find a tool, then run it through a proxy
+        const searchMode = has("search_tools") && has("call_tool");
+        const discovery = codeMode ? ["search", "get_schema"] : searchMode ? ["search_tools"] : [];
+        const execution = codeMode ? "execute" : searchMode ? "call_tool" : null;
         calls.set(event.toolCallId, { start: performance.now(), metric: {
           id: event.toolCallId, name: event.toolName,
-          category: codeMode && ["search", "get_schema"].includes(event.toolName) ? "discovery"
-            : codeMode && event.toolName === "execute" ? "execution" : "operation",
+          category: discovery.includes(event.toolName) ? "discovery"
+            : event.toolName === execution ? "execution" : "operation",
           startedAt: new Date().toISOString(), elapsedMs: null, status: "pending", textBytes: null, contentBlocks: null, failedTool: null,
         } });
       }
