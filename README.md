@@ -103,7 +103,12 @@ semble feed --pretty
 
 ## mcp server
 
-the `mcp` extra ships a `semble-mcp` entry point that exposes this sdk to mcp clients via [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode): three meta-tools (`search` / `get_schema` / `execute`) instead of one tool per endpoint, with model-written python composing sdk calls in a [monty](https://github.com/pydantic/monty) sandbox. intermediate results stay in the sandbox; only the final answer returns to the model's context.
+the `mcp` extra ships a `semble-mcp` entry point that exposes all 51 sdk methods to mcp clients behind one of two front doors, picked by `SEMBLE_MCP_MODE`:
+
+- **`code`** (the default) uses [fastmcp code mode](https://gofastmcp.com/servers/transforms/code-mode). it offers three meta-tools (`search` / `get_schema` / `execute`), and model-written python composes sdk calls in a [monty](https://github.com/pydantic/monty) sandbox. intermediate results stay in the sandbox, and only the final answer returns to the model's context.
+- **`jev`** offers a `search_tools` / `call_tool` pair. [TypeSafe](https://typesafe.ai)'s Jev model ranks the catalog against the request, then re-reads the top candidates' full docs before answering. the model calls one sdk method per turn. this mode needs a `TYPESAFE_API_KEY`, and it rate-limits searches, since each one is billed to the server's key.
+
+jev mode depends on fastmcp's `JevSearchTransform` ([PrefectHQ/fastmcp#5170](https://github.com/PrefectHQ/fastmcp/pull/5170)), which this repo pins by commit. until a fastmcp release carries it, run jev mode from a checkout rather than from the published package.
 
 create an api key at [semble.so/settings/api-keys](https://semble.so/settings/api-keys), then:
 
@@ -132,6 +137,8 @@ hosted (http) deployments resolve auth per request instead: send your key as an 
 ```bash
 claude mcp add semble --transport http https://semble.fastmcp.app/mcp -H "x-semble-api-key: your-key"
 ```
+
+the hosted instance runs in jev mode, so it works with no key at all. ask for "the last five things bmann.ca saved" and it answers in two tool calls: `search_tools` picks `cards_list_by_user`, then `call_tool` runs it. `just mcp-mode code` or `just mcp-mode jev` switches the hosted server, and [the assessment](docs/mcp-comparison-assessment.md) compares the two modes with the official server.
 
 `requirements.horizon.txt` exists for hosting platforms whose builders can't install extras from pyproject.toml.
 
